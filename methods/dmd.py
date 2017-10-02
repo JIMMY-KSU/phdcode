@@ -3,20 +3,19 @@ import scipy.linalg as la
 
 
 class DMD:
-    def __init__(self, dynamics_rank=None):
-        self.dynamics_rank = dynamics_rank
+    def __init__(self, threshold=1e-10):
+        self.threshold = threshold
 
     def fit(self, Xin, dt):
-        if self.dynamics_rank is None:
-            self.dynamics_rank = Xin.shape[0]
 
         X = Xin[:,:-1]
         Xp = Xin[:,1:]
 
         U,s,Vt = la.svd(X, full_matrices=False)
-        U = U[:,:self.dynamics_rank]
-        s = s[:self.dynamics_rank]
-        V = Vt[:self.dynamics_rank].T
+        r = np.where(s > self.threshold)[0].size
+        U = U[:,:r]
+        s = s[:r]
+        V = Vt[:r].T
 
         tmp = np.dot(Xp, V/s)
         A_tilde = np.dot(U.T, tmp)

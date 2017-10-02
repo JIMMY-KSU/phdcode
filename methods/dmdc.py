@@ -37,7 +37,7 @@ class DMDc:
 
             tmp = np.dot(Xp, V/s)
             tmp2 = np.dot(U_hat.T, tmp)
-            U1U = np.dot(U[:n].T, U_hat.T)
+            U1U = np.dot(U[:n].T, U_hat)
             A_tilde = np.dot(tmp2, U1U)
             B_tilde = np.dot(tmp, U[n:].T)
 
@@ -75,21 +75,17 @@ class DMDc:
         self.b = b
         self.Atilde = A_tilde
 
-    def reconstruct(self, x0, U, t):
-        K = self.b.size
-        return np.real(np.dot(self.Phi*self.b, np.exp(np.outer(self.omega,t))))
+    def reconstruct(self, x0, U, t0, dt, T):
+        f = lambda t,x: np.dot(self.Atilde, x) + np.dot(self.Btilde, U[:,int((t-t0)/dt)])
 
-    # def reconstruct(self, x0, U, t0, dt, T):
-        # f = lambda t,x: np.dot(self.Atilde, x) + np.dot(self.Btilde, U[:,int((t-t0)/dt)])
-        #
-        # r = ode(f).set_integrator('zvode', method='bdf')
-        # r.set_initial_value(x0, t0)
-        #
-        # x = [x0]
-        # t = [t0]
-        # while r.successful() and r.t < T:
-        #     r.integrate(r.t + dt)
-        #     x.append(np.real(r.y))
-        #     t.append(r.t)
-        #
-        # return np.array(x).T, np.array(t)
+        r = ode(f).set_integrator('zvode', method='bdf')
+        r.set_initial_value(x0, t0)
+
+        x = [x0]
+        t = [t0]
+        while r.successful() and r.t < T:
+            r.integrate(r.t + dt)
+            x.append(np.real(r.y))
+            t.append(r.t)
+
+        return np.array(x).T, np.array(t)
