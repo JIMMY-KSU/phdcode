@@ -71,7 +71,7 @@ class mrDMD:
         sep = int(n_samples/2)
 
         if self.tree['nextlevel1']:
-            x1 = self._reconstruct_recursion(self.tree['nextlevel1'], t[:sep]).astype(float)
+            x1 = self._reconstruct_recursion(tree['nextlevel1'], t[:sep]).astype(float)
         else:
             x1 = np.zeros((1,sep))
 
