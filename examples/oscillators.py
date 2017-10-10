@@ -59,24 +59,24 @@ def simulate_duffing_oscillator(t0, dt, T, x0=None, alpha=1., beta=1, gamma=0., 
     return np.array(x).T,np.array(t),np.array(xprime).T
 
 
-def coupled_vdp_duffing(mu, alpha, beta, gamma, delta, omega, phi, psi):
-    f = lambda t,x : [x[1] + phi*x[2], mu*(1-x[0]**2)*x[1] - x[0],
-                  x[3] + psi*x[0], -delta*x[3] - alpha*x[2] - beta*x[2]**3 + gamma*np.cos(x[4]), omega]
-    jac = lambda t,x : [[0., 1., phi, 0., 0.],
+def coupled_vdp_duffing(mu, alpha, beta, gamma, delta, omega, c1, c2):
+    f = lambda t,x : [x[1] + c1*x[2], mu*(1-x[0]**2)*x[1] - x[0],
+                  x[3] + c2*x[0], -delta*x[3] - alpha*x[2] - beta*x[2]**3 + gamma*np.cos(x[4]), omega]
+    jac = lambda t,x : [[0., 1., c1, 0., 0.],
                         [-2.*mu*x[0]*x[1] - 1., -mu*x[0]**2, 0., 0., 0.],
-                        [psi, 0., 0., 1., 0.],
+                        [c2, 0., 0., 1., 0.],
                         [0., 0., -alpha - 3*beta*x[0]**2, -delta, -gamma*np.sin(x[2])],
                         [0., 0., 0., 0., 0.]]
     return f,jac
 
 
-def simulate_coupled_vdp_duffing(t0, dt, T, x0=None, mu=1., alpha=1., beta=2., gamma=0., delta=0., omega=1., phi=1., psi=1.):
+def simulate_coupled_vdp_duffing(t0, dt, T, x0=None, mu=1., alpha=1., beta=2., gamma=0., delta=0., omega=1., c1=1., c2=1.):
     if x0 is None:
         x0 = [2.,0.,0.,1.,omega*t0]
 
     n_timesteps = int((T-t0)/dt) + 1
 
-    f,jac = coupled_vdp_duffing(mu,alpha,beta,gamma,delta,omega,phi,psi)
+    f,jac = coupled_vdp_duffing(mu,alpha,beta,gamma,delta,omega,c1,c2)
     r = ode(f,jac).set_integrator('zvode', method='bdf')
     r.set_initial_value(x0, t0)
 
@@ -130,24 +130,24 @@ def simulate_coupled_linear(dt, T, k1=1.1, k2=.5, alpha=-.5, beta=-1.):
     return np.vstack((x_soln,y_soln)), modes, evals, coeffs
 
 
-def coupled_linear_duffing(k, alpha, beta, gamma, delta, omega, phi, psi):
-    f = lambda t,x: [x[1] + phi*x[2], -k*x[0],
-                     x[3] + psi*x[0], -delta*x[3] - alpha*x[2] - beta*x[2]**3 + gamma*np.cos(x[4]), omega]
-    jac = lambda t,x : [[0., 1., phi, 0., 0.],
+def coupled_linear_duffing(k, alpha, beta, gamma, delta, omega, c1, c2):
+    f = lambda t,x: [x[1] + c1*x[2], -k*x[0],
+                     x[3] + c2*x[0], -delta*x[3] - alpha*x[2] - beta*x[2]**3 + gamma*np.cos(x[4]), omega]
+    jac = lambda t,x : [[0., 1., c1, 0., 0.],
                         [-k, 0., 0., 0., 0.],
-                        [psi, 0., 0., 1., 0.],
+                        [c2, 0., 0., 1., 0.],
                         [0., 0., -alpha - 3*beta*x[2]**2, -delta, -gamma*np.sin(x[4])],
                         [0., 0., 0., 0., 0.]]
     return f,jac
 
 
-def simulate_coupled_linear_duffing(t0, dt, T, x0=None, k=1., alpha=1., beta=1., gamma=0., delta=0., omega=1., phi=1., psi=1.):
+def simulate_coupled_linear_duffing(t0, dt, T, x0=None, k=1., alpha=1., beta=1., gamma=0., delta=0., omega=1., c1=1., c2=1.):
     if x0 is None:
         x0 = [1.,0.,1.,0.,omega*t0]
 
     n_timesteps = int((T-t0)/dt) + 1
 
-    f,jac = coupled_linear_duffing(k,alpha,beta,gamma,delta,omega,phi,psi)
+    f,jac = coupled_linear_duffing(k,alpha,beta,gamma,delta,omega,c1,c2)
     r = ode(f,jac).set_integrator('zvode', method='bdf')
     r.set_initial_value(x0, t0)
 
@@ -163,23 +163,23 @@ def simulate_coupled_linear_duffing(t0, dt, T, x0=None, k=1., alpha=1., beta=1.,
     return np.array(x).T, np.array(t), np.array(xprime).T
 
 
-def coupled_linear_vdp(k, mu, phi, psi):
-    f = lambda t,x: [x[1] + phi*x[2], -k*x[0],
-                     x[3] + psi*x[0], mu*(1-x[2]**2)*x[3] - x[2]]
-    jac = lambda t,x : [[0., 1., phi, 0.],
+def coupled_linear_vdp(k, mu, c1, c2):
+    f = lambda t,x: [x[1] + c1*x[2], -k*x[0],
+                     x[3] + c2*x[0], mu*(1-x[2]**2)*x[3] - x[2]]
+    jac = lambda t,x : [[0., 1., c1, 0.],
                         [-k, 0., 0., 0.],
-                        [psi, 0., 0., 1.],
+                        [c2, 0., 0., 1.],
                         [0., 0., -2.*mu*x[2]*x[3] - 1., -mu*x[2]**2]]
     return f,jac
 
 
-def simulate_coupled_linear_vdp(t0, dt, T, x0=None, k=1., mu=1., phi=1., psi=1.):
+def simulate_coupled_linear_vdp(t0, dt, T, x0=None, k=1., mu=1., c1=1., c2=1.):
     if x0 is None:
         x0 = [1.,0.,2.,0.]
 
     n_timesteps = int((T-t0)/dt) + 1
 
-    f,jac = coupled_linear_vdp(k,mu,phi,psi)
+    f,jac = coupled_linear_vdp(k,mu,c1,c2)
     r = ode(f,jac).set_integrator('zvode', method='bdf')
     r.set_initial_value(x0, t0)
 
@@ -241,26 +241,26 @@ def simulate_linear_oscillator(t0, dt, T, x0=None, k=1.):
     return np.array(x).T, np.array(t), np.array(xprime).T
 
 
-def coupled_duffing(alpha1, beta1, gamma1, delta1, omega1, alpha2, beta2, gamma2, delta2, omega2, phi, psi):
-    f = lambda t,x: [x[1] + phi*x[3], -delta1*x[1] - alpha1*x[0] - beta1*x[0]**3 + gamma1*np.cos(x[2]), omega1,
-                     x[4] + psi*x[0], -delta2*x[4] - alpha2*x[3] - beta2*x[3]**3 + gamma2*np.cos(x[5]), omega2]
-    jac = lambda t,x : [[0., 1., 0., phi, 0., 0.],
+def coupled_duffing(alpha1, beta1, gamma1, delta1, omega1, alpha2, beta2, gamma2, delta2, omega2, c1, c2):
+    f = lambda t,x: [x[1] + c1*x[3], -delta1*x[1] - alpha1*x[0] - beta1*x[0]**3 + gamma1*np.cos(x[2]), omega1,
+                     x[4] + c2*x[0], -delta2*x[4] - alpha2*x[3] - beta2*x[3]**3 + gamma2*np.cos(x[5]), omega2]
+    jac = lambda t,x : [[0., 1., 0., c1, 0., 0.],
                         [-alpha1 - 3*beta1*x[0]**2, -delta1, -gamma1*np.sin(x[2]), 0., 0., 0.],
                         [0., 0., 0., 0., 0., 0.],
-                        [psi, 0., 0., 0., 1., 0.],
+                        [c2, 0., 0., 0., 1., 0.],
                         [0., 0., 0., -alpha2 - 3*beta2*x[3]**2, -delta2, -gamma2*np.sin(x[5])],
                         [0., 0., 0., 0., 0., 0.]]
     return f,jac
 
 
 def simulate_coupled_duffing(t0, dt, T, x0=None, alpha1=1., beta1=1., gamma1=0., delta1=0., omega1=1., alpha2=1.,
-                             beta2=1., gamma2=0., delta2=0., omega2=1., phi=1., psi=1.):
+                             beta2=1., gamma2=0., delta2=0., omega2=1., c1=1., c2=1.):
     if x0 is None:
         x0 = [1.,0.,omega1*t0,1.,0.,omega2*t0]
 
     n_timesteps = int((T-t0)/dt) + 1
 
-    f,jac = coupled_duffing(alpha1, beta1, gamma1, delta1, omega1, alpha2, beta2, gamma2, delta2, omega2, phi, psi)
+    f,jac = coupled_duffing(alpha1, beta1, gamma1, delta1, omega1, alpha2, beta2, gamma2, delta2, omega2, c1, c2)
     r = ode(f,jac).set_integrator('zvode', method='bdf')
     r.set_initial_value(x0, t0)
 
@@ -276,23 +276,23 @@ def simulate_coupled_duffing(t0, dt, T, x0=None, alpha1=1., beta1=1., gamma1=0.,
     return np.array(x).T, np.array(t), np.array(xprime).T
 
 
-def coupled_vdp(mu1, mu2, phi, psi):
-    f = lambda t,x: [x[1] + phi*x[2], mu1*(1-x[0]**2)*x[1] - x[0],
-                     x[3] + psi*x[0], mu2*(1-x[2]**2)*x[3] - x[2]]
-    jac = lambda t,x : [[0., 1., phi, 0.],
+def coupled_vdp(mu1, mu2, c1, c2):
+    f = lambda t,x: [x[1] + c1*x[2], mu1*(1-x[0]**2)*x[1] - x[0],
+                     x[3] + c2*x[0], mu2*(1-x[2]**2)*x[3] - x[2]]
+    jac = lambda t,x : [[0., 1., c1, 0.],
                         [-2.*mu1*x[0]*x[1] - 1., -mu1*x[0]**2, 0., 0.],
-                        [psi, 0., 0., 1.],
+                        [c2, 0., 0., 1.],
                         [0., 0., -2.*mu2*x[2]*x[3] - 1., -mu2*x[2]**2]]
     return f,jac
 
 
-def simulate_coupled_vdp(t0, dt, T, x0=None, mu1=1., mu2=1., phi=1., psi=1.):
+def simulate_coupled_vdp(t0, dt, T, x0=None, mu1=1., mu2=1., c1=1., c2=1.):
     if x0 is None:
         x0 = [2.,0.,0.,2.]
 
     n_timesteps = int((T-t0)/dt) + 1
 
-    f,jac = coupled_vdp(mu1,mu2,phi,psi)
+    f,jac = coupled_vdp(mu1,mu2,c1,c2)
     r = ode(f,jac).set_integrator('zvode', method='bdf')
     r.set_initial_value(x0, t0)
 
