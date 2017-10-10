@@ -1,6 +1,5 @@
 import numpy as np
 import scipy.linalg as la
-from scipy.integrate import ode
 
 
 class DMDc:
@@ -13,6 +12,8 @@ class DMDc:
         #     self.input_rank = X_in.shape[0] + Ups_in.shape[0]
         # if self.output_rank is None:
         #     self.output_rank = X_in.shape[0]
+
+        self.dt = dt
 
         X = X_in[:, :-1]
         Ups = Ups_in[:, :-1]
@@ -36,10 +37,14 @@ class DMDc:
             V_hat = Vt_hat[:r].T
 
             tmp = np.dot(Xp, V/s)
-            tmp2 = np.dot(U_hat.T, tmp)
+            #tmp2 = np.dot(U_hat.T, tmp)
             U1U = np.dot(U[:n].T, U_hat)
-            A_tilde = np.dot(tmp2, U1U)
-            B_tilde = np.dot(tmp, U[n:].T)
+            A = np.dot(tmp, U[:n].T)
+            B = np.dot(tmp, U[n:].T)
+            # A_tilde = np.dot(tmp2, U1U)
+            # B_tilde = np.dot(tmp2, U[n:].T)
+            A_tilde = np.dot(np.dot(U_hat.T, A),U_hat)
+            B_tilde = np.dot(U_hat.T, B)
 
             evals, evecs = la.eig(A_tilde)
             Phi = np.dot(np.dot(tmp, U1U), evecs)
@@ -47,7 +52,11 @@ class DMDc:
             omega = np.log(evals)/dt
             b = la.lstsq(Phi, X[:,0])[0]
 
+            self.A = A
+            self.B = B
+            self.Atilde = A_tilde
             self.Btilde = B_tilde
+            self.P = U_hat
         else:
             if B is None:
                 raise AttributeError('control matrix B must be provided')
@@ -68,24 +77,36 @@ class DMDc:
             omega = np.log(evals)/dt
             b = la.lstsq(Phi, X[:,0])[0]
 
-            self.Btilde = B
+            self.A = np.dot(tmp, Ur.T)
+            self.B = B
+            self.Atilde = A_tilde
+            self.Btilde = np.dot(Ur.T, B)
+            self.P = Ur
 
         self.Phi = Phi
         self.omega = omega
         self.b = b
-        self.Atilde = A_tilde
 
-    def reconstruct(self, x0, U, t0, dt, T):
-        f = lambda t,x: np.dot(self.Atilde, x) + np.dot(self.Btilde, U[:,int((t-t0)/dt)])
+    def reconstruct(self, x0, U, t0, T):
+        n_timesteps = int((T-t0)/self.dt)+1
 
-        r = ode(f).set_integrator('zvode', method='bdf')
-        r.set_initial_value(x0, t0)
+        X = np.zeros((x0.size,n_timesteps))
+        X[:,0] = x0
+        for i,t in enumerate(np.arange(t0,T,self.dt)):
+            xtilde = np.dot(np.dot(self.Atilde, self.P.T), X[:,i]) + np.dot(self.Btilde, U[:,i])
+            X[:,i+1] = np.dot(self.P, xtilde)
 
-        x = [x0]
-        t = [t0]
-        while r.successful() and r.t < T:
-            r.integrate(r.t + dt)
-            x.append(np.real(r.y))
-            t.append(r.t)
+        return X
 
-        return np.array(x).T, np.array(t)
+    def project(self, Xin, Uin, T):
+        n_steps = int(T/self.dt)+1
+        n_samples = Xin.shape[1]
+
+        X = np.zeros((Xin.shape[0],n_samples+n_steps))
+        Xtilde = np.dot(np.dot(self.Atilde, self.P.T), Xin[:,:-1]) + np.dot(self.Btilde, Uin[:,:n_samples-1])
+        X[:,:n_samples-1] = np.dot(self.P, Xtilde)
+        for i in range(n_steps+1):
+            xtilde = np.dot(np.dot(self.Atilde, self.P.T), X[:,n_samples-2+i]) + np.dot(self.Btilde, Uin[:,n_samples-2+i])
+            X[:,n_samples-1+i] = np.dot(self.P, xtilde)
+
+        return X
