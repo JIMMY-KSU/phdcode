@@ -17,5 +17,4 @@ def generate_gaussian_image(image_width, image_height, centers, sigmas, scales):
     image = np.zeros((image_height, image_width))
     for i in range(centers.shape[0]):
         image += scales[i]*np.exp(-((rr-centers[i,0])**2/(2.0*sigmas[i,0]**2) + (cc-centers[i,1])**2/(2.0*sigmas[i,1]**2)))
-        # image += scales[i]*np.exp(-((np.sqrt((rr-centers[i,0])**2 + (cc-centers[i,1])**2))**2 / (2.0*sigmas[i]**2)))
     return image
