@@ -21,6 +21,7 @@ class DMD:
 
         U,s,Vt = la.svd(X, full_matrices=False)
         r = np.where(s > self.threshold)[0].size
+        self.rank = r
         U = U[:,:r]
         s = s[:r]
         V = Vt[:r].T
