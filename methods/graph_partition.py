@@ -59,3 +59,18 @@ def spectral_bisection(A, cluster_size=None):
 def cut_size(s, A):
     L = laplacian_matrix(A)
     return 0.25*np.dot(s.T, np.dot(L, s))
+
+
+def modularity(A, c):
+    n = A.shape[0]
+
+    k = np.sum(A, axis=0) + np.sum(A, axis=1) - np.diag(A)
+    m = np.sum(k)
+
+    Q = 0
+    for i in range(n):
+        for j in range(n):
+            if c[i] == c[j]:
+                Q += (A[i,j] - k[i]*k[j]/(2.*m))
+
+    return Q
