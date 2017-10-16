@@ -77,4 +77,9 @@ def modularity(A, c, undirected=False):
                 else:
                     Q += (A[i,j] - k_in[i]*k_out[j]/m)
 
+    if undirected:
+        Q /= 2.*m
+    else:
+        Q /= m
+        
     return Q
