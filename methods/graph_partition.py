@@ -33,20 +33,20 @@ def spectral_bisection(A, cluster_size=None):
     v2 = evecs[idxs[1]]
 
     if cluster_size is None:
-        s = np.ones(evals.size)
-        s[np.where(evals < 0)] = -1
+        s = np.ones(v2.size)
+        s[np.where(v2 < 0)] = -1
 
         return s
     else:
         partition_idxs = np.argsort(v2)
 
         # first partition
-        s1 = np.ones(evals.size)
+        s1 = np.ones(v2.size)
         s1[partition_idxs[0:cluster_size]] = -1
         R1 = cut_size(s1, A)
 
         # second partition
-        s2 = np.ones(evals.size)
+        s2 = np.ones(v2.size)
         s2[partition_idxs[-cluster_size:]] = -1
         R2 = cut_size(s2, A)
 
