@@ -64,8 +64,8 @@ def cut_size(s, A):
 def modularity(A, c):
     n = A.shape[0]
 
-    k_in = np.sum(A, axis=0) - np.diag(A)/2.
-    k_out = np.sum(A, axis=1) - np.diag(A)/2.
+    k_in = np.sum(A, axis=0)
+    k_out = np.sum(A, axis=1)
     m = np.sum(A)
 
     Q = 0
