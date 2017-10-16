@@ -22,3 +22,40 @@ def dynamics_to_adjacency_matrix(A_in, threshold=1e-3):
 def laplacian_matrix(A):
     D = np.eye(A.shape[0])*np.sum(A,axis=0)
     return D - A
+
+
+def spectral_bisection(A, cluster_size=None):
+    L = laplacian_matrix(A)
+    evals, evecs = la.eig(L)
+
+    idxs = np.argsort(evals)
+    lambda2 = evals[idxs[1]]
+    v2 = evecs[idxs[1]]
+
+    if cluster_size is None:
+        s = np.ones(evals.size)
+        s[np.where(evals < 0)] = -1
+
+        return s
+    else:
+        partition_idxs = np.argsort(v2)
+
+        # first partition
+        s1 = np.ones(evals.size)
+        s1[partition_idxs[0:cluster_size]] = -1
+        R1 = cut_size(s1, A)
+
+        # second partition
+        s2 = np.ones(evals.size)
+        s2[partition_idxs[-cluster_size:]] = -1
+        R2 = cut_size(s2, A)
+
+        if R1 < R2:
+            return s1
+        else:
+            return s2
+
+
+def cut_size(s, A):
+    L = laplacian_matrix(A)
+    return 0.25*np.dot(s.T, np.dot(L, s))
