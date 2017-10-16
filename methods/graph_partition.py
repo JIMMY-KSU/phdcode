@@ -61,7 +61,7 @@ def cut_size(s, A):
     return 0.25*np.dot(s.T, np.dot(L, s))
 
 
-def modularity(A, c):
+def modularity(A, c, undirected=False):
     n = A.shape[0]
 
     k_in = np.sum(A, axis=0)
@@ -72,6 +72,9 @@ def modularity(A, c):
     for i in range(n):
         for j in range(n):
             if c[i] == c[j]:
-                Q += (A[i,j] - k_in[i]*k_out[j]/m)
+                if undirected:
+                    Q += (A[i,j] - k_in[i]*k_out[j]/(2.*m))
+                else:
+                    Q += (A[i,j] - k_in[i]*k_out[j]/m)
 
     return Q
