@@ -28,7 +28,7 @@ def pool_data(Xin, poly_order=2, use_sine=False, varname='x'):
     for i in range(n):
         Xout[index] = Xin[i]
         index += 1
-        labels.append('x%d' % (i+1))
+        labels.append('%s%d' % (varname,i+1))
 
     if (poly_order >= 2):
         for i in range(n):
