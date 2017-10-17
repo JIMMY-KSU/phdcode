@@ -42,7 +42,7 @@ class DMD:
         K = self.b.size
         return np.real(np.dot(self.Phi*self.b, np.exp(np.outer(self.omega,t))))
 
-    def project(self, Xin, T):
+    def project(self, Xin, T, reduced=False):
         n_steps = int(T/self.dt)+1
         n_samples = Xin.shape[1]
 
@@ -59,11 +59,17 @@ class DMD:
         H = hankel_matrix(Xin[:,:-1],self.time_delay)
 
         X = np.zeros((Xin.shape[0]*(self.time_delay+1), n_samples + n_steps))
-        Xtilde = np.dot(np.dot(self.Atilde, self.P.T), H)
-        X[:,:n_samples-self.time_delay-2] = np.dot(self.P, Xtilde)
+        Xtilde = np.zeros((Xin.shape[0]*(self.time_delay+1), n_samples + n_steps))
+        # Xtilde = np.dot(np.dot(self.Atilde, self.P.T), H)
+        # X[:,:n_samples-self.time_delay-2] = np.dot(self.P, Xtilde)
+        Xtilde[:,:n_samples-self.time_delay-2] = np.dot(np.dot(self.Atilde, self.P.T), H)
+        X[:,:n_samples-self.time_delay-2] = np.dot(self.P, Xtilde[:,:n_samples-self.time_delay-2])
         for i in range(n_steps + self.time_delay + 2):
             idx = n_samples - self.time_delay - 2 + i
-            xtilde = np.dot(np.dot(self.Atilde, self.P.T), X[:,idx-1])
-            X[:,idx] = np.dot(self.P, xtilde)
+            Xtilde[:,idx] = np.dot(np.dot(self.Atilde, self.P.T), X[:,idx-1])
+            X[:,idx] = np.dot(self.P, Xtilde[:,idx])
 
-        return X
+        if reduced:
+            return Xtilde
+        else:
+            return X
