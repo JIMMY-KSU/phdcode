@@ -3,7 +3,7 @@ from scipy.integrate import ode
 from scipy.special import binom
 
 
-def pool_data(Xin, poly_order=2, use_sine=False):
+def pool_data(Xin, poly_order=2, use_sine=False, varname='x'):
     if poly_order > 5:
         poly_order = 5
 
@@ -35,7 +35,7 @@ def pool_data(Xin, poly_order=2, use_sine=False):
             for j in range(i,n):
                 Xout[index] = Xin[i]*Xin[j]
                 index += 1
-                labels.append('x%d*x%d' % (i+1,j+1))
+                labels.append('%s%d*%s%d' % (varname,i+1,varname,j+1))
 
     if (poly_order >= 3):
         for i in range(n):
@@ -43,7 +43,7 @@ def pool_data(Xin, poly_order=2, use_sine=False):
                 for k in range(j,n):
                     Xout[index] = Xin[i]*Xin[j]*Xin[k]
                     index += 1
-                    labels.append('x%d*x%d*x%d' % (i+1,j+1,k+1))
+                    labels.append('%s%d*%s%d*%s%d' % (varname,i+1,varname,j+1,varname,k+1))
 
     if (poly_order >= 4):
         for i in range(n):
@@ -52,7 +52,7 @@ def pool_data(Xin, poly_order=2, use_sine=False):
                     for l in range(k,n):
                         Xout[index] = Xin[i]*Xin[j]*Xin[k]*Xin[l]
                         index += 1
-                        labels.append('x%d*x%d*x%d*x%d' % (i+1,j+1,k+1,l+1))
+                        labels.append('%s%d*%s%d*%s%d*%s%d' % (varname,i+1,varname,j+1,varname,k+1,varname,l+1))
 
     if (poly_order >= 5):
         for i in range(n):
@@ -62,17 +62,17 @@ def pool_data(Xin, poly_order=2, use_sine=False):
                         for m in range(l,n):
                             Xout[index] = Xin[i]*Xin[j]*Xin[k]*Xin[l]*Xin[m]
                             index += 1
-                            labels.append('x%d*x%d*x%d*x%d*x%d' % (i+1,j+1,k+1,l+1,m+1))
+                            labels.append('%s%d*%s%d*%s%d*%s%d*%s%d' % (varname,i+1,varname,j+1,varname,k+1,varname,l+1,varname,m+1))
 
     if use_sine:
         for i in range(n):
             Xout[index] = np.sin(Xin[i])
             index += 1
-            labels.append('sin(x%d)' % (i+1))
+            labels.append('sin(%s%d)' % (varname,i+1))
         for i in range(n):
             Xout[index] = np.cos(Xin[i])
             index += 1
-            labels.append('cos(x%d)' % (i+1))
+            labels.append('cos(%s%d)' % (varname,i+1))
 
     return Xout,labels
 
