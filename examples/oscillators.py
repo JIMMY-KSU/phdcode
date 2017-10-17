@@ -306,3 +306,36 @@ def simulate_coupled_vdp(t0, dt, T, x0=None, mu1=1., mu2=1., c1=1., c2=1.):
         t.append(r.t)
 
     return np.array(x).T, np.array(t), np.array(xprime).T
+
+
+def coupled_vdp_lorenz(mu, sigma, rho, beta, c1, c2):
+    f = lambda t,x: [x[1] + c1*x[2], mu*(1-x[0]**2)*x[1] - x[0],
+                     sigma*(x[3] - x[2]) + c2*x[0], x[2]*(rho - x[4]) - x[3], x[2]*x[3] - beta*x[4]]
+    jac = lambda t,x : [[0., 1., c1, 0., 0.],
+                        [-2.*mu*x[0]*x[1] - 1., -mu*x[0]**2, 0., 0., 0.],
+                        [c2, 0., -sigma, sigma, 0.],
+                        [0., 0., rho - x[4], -1., -x[2]],
+                        [0., 0., x[3], x[2], -beta]]
+    return f,jac
+
+
+def simulate_coupled_vdp_lorenz(t0, dt, T, x0=None, mu=1., sigma=10., rho=28., beta=8/3, c1=1., c2=1.):
+    if x0 is None:
+        x0 = [2., 0., -8., 7., 27.]
+
+    n_timesteps = int((T-t0)/dt) + 1
+
+    f,jac = coupled_vdp_lorenz(mu,sigma,rho,beta,c1,c2)
+    r = ode(f,jac).set_integrator('zvode', method='bdf')
+    r.set_initial_value(x0, t0)
+
+    x = [x0]
+    t = [t0]
+    xprime = [f(t0,x0)]
+    while r.successful() and len(x) < n_timesteps:
+        r.integrate(r.t + dt)
+        x.append(np.real(r.y))
+        xprime.append(f(r.t,np.real(r.y)))
+        t.append(r.t)
+
+    return np.array(x).T, np.array(t), np.array(xprime).T
