@@ -7,20 +7,17 @@ def dynamics_to_adjacency_matrix(A_in, threshold=1e-3):
 
     A = np.zeros(A_in.shape)
     A[np.where(np.abs(A_in) > threshold)] = 1.
-    # A[1:n,1:n] *= 2.
 
     for i in range(n):
         for j in range(n):
-            if i == j:
-                A[i,j] *= 2.
-            elif A[j,i] == 1.:
+            if A[j,i] == 1.:
                 A[i,j] = 1.
 
     return A
 
 
 def laplacian_matrix(A):
-    D = np.eye(A.shape[0])*np.sum(A,axis=0)
+    D = np.diag(np.sum(A,axis=0))
     return D - A
 
 
@@ -81,5 +78,35 @@ def modularity(A, c, undirected=False):
         Q /= 2.*m
     else:
         Q /= m
-        
+
+    return Q
+
+
+def modularity_signed(A, c, undirected=False):
+    n = A.shape[0]
+
+    A_plus = np.maximum(A, 0.)
+    A_minus = np.maximum(-A, 0.)
+
+    k_in_plus = np.sum(A_plus, axis=0)
+    k_out_plus = np.sum(A_plus, axis=1)
+    m_plus = np.sum(A_plus)
+    k_in_minus = np.sum(A_minus, axis=0)
+    k_out_minus = np.sum(A_minus, axis=1)
+    m_minus = np.sum(A_minus)
+
+    Q_plus = 0
+    Q_minus = 0
+    for i in range(n):
+        for j in range(n):
+            if c[i] == c[j]:
+                if undirected:
+                    Q_plus += (A_plus[i,j] - k_in_plus[i]*k_out_plus[j]/(2.*m_plus))/(2.*m_plus)
+                    Q_minus += (A_minus[i,j] - k_in_minus[i]*k_out_minus[j]/(2.*m_minus))/(2.*m_minus)
+                else:
+                    Q_plus += (A_plus[i,j] - k_in_plus[i]*k_out_plus[j]/m_plus)/m_plus
+                    Q_minus += (A_minus[i,j] - k_in_minus[i]*k_out_minus[j]/m_minus)/m_minus
+
+    Q = (m_plus*Q_plus - m_minus*Q_minus)/(m_plus + m_minus)
+
     return Q
