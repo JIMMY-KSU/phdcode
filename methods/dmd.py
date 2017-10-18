@@ -41,8 +41,7 @@ class DMD:
         self.P = U
 
     def reconstruct(self, t):
-        K = self.b.size
-        return np.dot(self.Phi*self.b, np.exp(np.outer(self.omega,t)))
+        return np.dot(self.Phi, (np.exp(np.outer(self.omega,t)).T*self.b).T)
 
     def project(self, Xin, T, reduced=False):
         n_steps = int(T/self.dt)+1
