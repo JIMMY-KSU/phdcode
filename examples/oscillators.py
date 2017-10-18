@@ -92,8 +92,8 @@ def simulate_coupled_vdp_duffing(t0, dt, T, x0=None, mu=1., alpha=1., beta=2., g
     return np.array(x).T, np.array(t), np.array(xprime).T
 
 
-def simulate_coupled_linear(dt, T, k1=1.1, k2=.5, alpha=-.5, beta=-1.):
-    K = np.array([[-k1,alpha],[beta,-k2]])
+def simulate_coupled_linear(dt, T, k1=1.1, k2=.5, c1=-.5, c2=-1.):
+    K = np.array([[-k1,c1],[c2,-k2]])
 
     t = np.arange(0,T+dt,dt)
 
@@ -109,7 +109,7 @@ def simulate_coupled_linear(dt, T, k1=1.1, k2=.5, alpha=-.5, beta=-1.):
     x_soln = xa + xb
 
     # for dynamical system view - return solutions for y as well
-    At = np.array([[0., 0., 1., 0.], [0., 0., 0., 1.], [-k1, alpha, 0., 0.], [beta, -k2, 0., 0.]])
+    At = np.array([[0., 0., 1., 0.], [0., 0., 0., 1.], [-k1, c1, 0., 0.], [c2, -k2, 0., 0.]])
     ya = -omega1*np.outer(evecs[:,0], np.sin(omega1*t))
     yb = -omega2*np.outer(evecs[:,1], np.sin(omega2*t))
     y_soln = ya + yb
