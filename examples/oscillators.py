@@ -92,42 +92,74 @@ def simulate_coupled_vdp_duffing(t0, dt, T, x0=None, mu=1., alpha=1., beta=2., g
     return np.array(x).T, np.array(t), np.array(xprime).T
 
 
-def simulate_coupled_linear(dt, T, k1=1.1, k2=.5, c1=-.5, c2=-1.):
-    K = np.array([[-k1,c1],[c2,-k2]])
+def coupled_linear(k1,k2,c1,c2):
+    f = lambda t,x : [x[1] + c1*x[2], -k1*x[0],
+                      x[3] + c2*x[0], -k2*x[2]]
+    jac = lambda t,x : [[0., 1., c1, 0.],
+                        [-k1, 0., 0., 0.],
+                        [c2, 0., 0., 1.],
+                        [0., 0., -k2, 0.]]
+    return f,jac
 
-    t = np.arange(0,T+dt,dt)
 
-    evals,evecs = la.eig(-K)
-    if np.any(np.imag(evals) != 0):
-        print(evals)
-    omega1 = np.real(np.sqrt(evals[0]))
-    omega2 = np.real(np.sqrt(evals[1]))
-    omegas = np.array([omega1,omega2])
+def simulate_coupled_linear(t0, dt, T, x0=None, k1=1.1, k2=.5, c1=-.5, c2=-1.):
+    if x0 is None:
+        x0 = [1.,0.,0.,1.]
 
-    xa = np.outer(evecs[:,0],np.cos(omega1*t))
-    xb = np.outer(evecs[:,1],np.cos(omega2*t))
-    x_soln = xa + xb
+    n_timesteps = int((T-t0)/dt) + 1
 
-    # for dynamical system view - return solutions for y as well
-    At = np.array([[0., 0., 1., 0.], [0., 0., 0., 1.], [-k1, c1, 0., 0.], [c2, -k2, 0., 0.]])
-    ya = -omega1*np.outer(evecs[:,0], np.sin(omega1*t))
-    yb = -omega2*np.outer(evecs[:,1], np.sin(omega2*t))
-    y_soln = ya + yb
+    f,jac = coupled_linear(k1,k2,c1,c2)
+    r = ode(f,jac).set_integrator('zvode', method='bdf')
+    r.set_initial_value(x0, t0)
 
-    #evals,evecs = la.eig(At)
-    modes = np.empty((4,4),dtype=complex)
-    evals = np.empty(4,dtype=complex)
-    for i in range(4):
-        idx = int(i/2)
-        if (i % 2) == 0:
-            modes[:,i] = np.kron(np.array([1,1j*omegas[idx]]),evecs[:,idx])
-            evals[i] = 1j*omegas[idx]
-        else:
-            modes[:,i] = np.kron(np.array([1,-1j*omegas[idx]]),evecs[:,idx])
-            evals[i] = -1j*omegas[idx]
-    coeffs = np.array([.5,.5,.5,.5]) # not returning right now
+    x = [x0]
+    t = [t0]
+    xprime = [f(t0,x0)]
+    while r.successful() and len(x) < n_timesteps:
+        r.integrate(r.t + dt)
+        x.append(np.real(r.y))
+        xprime.append(f(r.t,np.real(r.y)))
+        t.append(r.t)
 
-    return np.vstack((x_soln,y_soln)), modes, evals, coeffs
+    return np.array(x).T, np.array(t), np.array(xprime).T
+
+
+# def simulate_coupled_linear(dt, T, k1=1.1, k2=.5, c1=-.5, c2=-1.):
+#     K = np.array([[-k1,c1],[c2,-k2]])
+#
+#     t = np.arange(0,T+dt,dt)
+#
+#     evals,evecs = la.eig(-K)
+#     if np.any(np.imag(evals) != 0):
+#         print(evals)
+#     omega1 = np.real(np.sqrt(evals[0]))
+#     omega2 = np.real(np.sqrt(evals[1]))
+#     omegas = np.array([omega1,omega2])
+#
+#     xa = np.outer(evecs[:,0],np.cos(omega1*t))
+#     xb = np.outer(evecs[:,1],np.cos(omega2*t))
+#     x_soln = xa + xb
+#
+#     # for dynamical system view - return solutions for y as well
+#     At = np.array([[0., 0., 1., 0.], [0., 0., 0., 1.], [-k1, c1, 0., 0.], [c2, -k2, 0., 0.]])
+#     ya = -omega1*np.outer(evecs[:,0], np.sin(omega1*t))
+#     yb = -omega2*np.outer(evecs[:,1], np.sin(omega2*t))
+#     y_soln = ya + yb
+#
+#     #evals,evecs = la.eig(At)
+#     modes = np.empty((4,4),dtype=complex)
+#     evals = np.empty(4,dtype=complex)
+#     for i in range(4):
+#         idx = int(i/2)
+#         if (i % 2) == 0:
+#             modes[:,i] = np.kron(np.array([1,1j*omegas[idx]]),evecs[:,idx])
+#             evals[i] = 1j*omegas[idx]
+#         else:
+#             modes[:,i] = np.kron(np.array([1,-1j*omegas[idx]]),evecs[:,idx])
+#             evals[i] = -1j*omegas[idx]
+#     coeffs = np.array([.5,.5,.5,.5]) # not returning right now
+#
+#     return np.vstack((x_soln,y_soln)), modes, evals, coeffs
 
 
 def coupled_linear_duffing(k, alpha, beta, gamma, delta, omega, c1, c2):
