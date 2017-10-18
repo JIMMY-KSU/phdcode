@@ -24,17 +24,17 @@ class DMD:
         self.rank = r
         U = U[:,:r]
         s = s[:r]
-        V = Vt[:r].T
+        V = Vt[:r].conj().T
 
         tmp = np.dot(Xp, V/s)
-        A_tilde = np.dot(U.T, tmp)
+        A_tilde = np.dot(U.conj().T, tmp)
         evals, evecs = la.eig(A_tilde)
 
         self.Phi = np.dot(tmp, evecs)
         self.omega = np.log(evals)/dt
         self.b = la.lstsq(self.Phi, X[:,0])[0]
 
-        self.A = np.dot(tmp, U.T)
+        self.A = np.dot(tmp, U.conj().T)
         self.Atilde = A_tilde
         self.A_continuous = (self.A - np.eye(self.A.shape[0]))/dt
         self.Atilde_continuous = (self.Atilde - np.eye(self.Atilde.shape[0]))/dt
