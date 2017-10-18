@@ -36,6 +36,8 @@ class DMD:
 
         self.A = np.dot(tmp, U.T)
         self.Atilde = A_tilde
+        self.A_continuous = (self.A - np.eye(self.A.shape[0]))/dt
+        self.Atilde_continuous = (self.Atilde - np.eye(self.Atilde.shape[0]))/dt
         self.P = U
 
     def reconstruct(self, t):
