@@ -117,8 +117,8 @@ def simulate_coupled_linear(t0, dt, T, x0=None, k1=1.1, k2=.5, c1=-.5, c2=-1.):
     xprime = [f(t0,x0)]
     while r.successful() and len(x) < n_timesteps:
         r.integrate(r.t + dt)
-        x.append(np.real(r.y))
-        xprime.append(f(r.t,np.real(r.y)))
+        x.append(r.y)
+        xprime.append(f(r.t,r.y))
         t.append(r.t)
 
     return np.array(x).T, np.array(t), np.array(xprime).T
