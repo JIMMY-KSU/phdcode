@@ -40,8 +40,11 @@ class DMD:
         self.Atilde_continuous = (self.Atilde - np.eye(self.Atilde.shape[0]))/dt
         self.P = U
 
+    def reduced_dynamics(self, t):
+        return (np.exp(np.outer(self.omega,t)).T*self.b).T
+
     def reconstruct(self, t):
-        return np.dot(self.Phi, (np.exp(np.outer(self.omega,t)).T*self.b).T)
+        return np.dot(self.Phi, self.reduced_dynamics(t))
 
     def project(self, Xin, T, reduced=False):
         n_steps = int(T/self.dt)+1
