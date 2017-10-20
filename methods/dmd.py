@@ -1,10 +1,11 @@
 import numpy as np
 import scipy.linalg as la
 from .utils import hankel_matrix
+from ..utils.optimal_svht_coef import optimal_svht_coef
 
 
 class DMD:
-    def __init__(self, threshold=1e-10, time_delay=0):
+    def __init__(self, threshold=None, time_delay=0):
         self.threshold = threshold
         self.time_delay = time_delay
 
@@ -20,7 +21,14 @@ class DMD:
             Xp = Xin[:,1:]
 
         U,s,Vt = la.svd(X, full_matrices=False)
-        r = np.where(s > self.threshold)[0].size
+        if self.threshold is None:
+            beta = X.shape[0]/X.shape[1]
+            if beta > 1:
+                beta = 1/beta
+            omega = optimal_svht_coef(beta,False) * np.median(s)
+            r = np.sum(s > omega)
+        else:
+            r = np.where(s > self.threshold)[0].size
         self.rank = r
         U = U[:,:r]
         s = s[:r]
