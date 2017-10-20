@@ -40,8 +40,7 @@ class DMD:
 
         self.Phi = np.dot(tmp, evecs)
         self.omega = np.log(evals)/dt
-        # self.b = la.lstsq(self.Phi, X[:,0])[0]
-        self.b = la.solve(self.Phi, X[:,0])
+        self.b = la.lstsq(self.Phi, X[:,0])[0]
 
         self.A = np.dot(tmp, U.conj().T)
         self.Atilde = A_tilde
