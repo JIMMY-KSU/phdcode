@@ -59,7 +59,7 @@ class DMD:
         n_samples = Xin.shape[1]
 
         if self.time_delay == 0:
-            X = np.zeros((Xin.shape[0],n_samples+n_steps))
+            X = np.zeros((Xin.shape[0],n_samples+n_steps), dtype=np.complex)
             Xtilde = np.zeros((self.rank, n_samples+n_steps))
             Xtilde[:,:n_samples-1] = np.dot(np.dot(self.Atilde, self.P.conj().T), Xin[:,:-1])
             # X[:,:n_samples-1] = np.dot(self.P, Xtilde)
@@ -75,7 +75,7 @@ class DMD:
 
         H = hankel_matrix(Xin[:,:-1],self.time_delay)
 
-        X = np.zeros((Xin.shape[0]*(self.time_delay+1), n_samples + n_steps))
+        X = np.zeros((Xin.shape[0]*(self.time_delay+1), n_samples + n_steps), dtype=np.complex)
         Xtilde = np.dot(np.dot(self.Atilde, self.P.conj().T), H)
         X[:,:n_samples-self.time_delay-2] = np.dot(self.P, Xtilde)
         for i in range(n_steps + self.time_delay + 2):
