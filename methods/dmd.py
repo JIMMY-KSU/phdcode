@@ -76,7 +76,7 @@ class DMD:
         H = hankel_matrix(Xin[:,:-1],self.time_delay)
 
         X = np.zeros((Xin.shape[0]*(self.time_delay+1), n_samples + n_steps), dtype=np.complex)
-        Xtilde = np.dot(np.dot(self.Atilde, self.P.conj().T), H, dtype=np.complex)
+        Xtilde = np.dot(np.dot(self.Atilde, self.P.conj().T), H)
         X[:,:n_samples-self.time_delay-2] = np.dot(self.P, Xtilde)
         for i in range(n_steps + self.time_delay + 2):
             idx = n_samples - self.time_delay - 2 + i
