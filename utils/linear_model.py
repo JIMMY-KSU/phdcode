@@ -15,13 +15,13 @@ class ComplexLinearRegression:
         y = y - y_offset
 
         self.coef_, self._residues, self.rank_, self.singular_ = np.linalg.lstsq(X, y)
-        self.coef_ = self.coef_.T
+        self.coef_ = self.coef_.conj().T
 
         if self.fit_intercept:
             self.coef_ = self.coef_
-            self.intercept_ = y_offset - np.dot(X_offset, self.coef_.T)
+            self.intercept_ = y_offset - np.dot(X_offset, self.coef_.conj().T)
         else:
             self.intercept_ = 0.
 
     def predict(self, Xin):
-        return np.dot(Xin, self.coef_.T) + self.intercept_
+        return np.dot(Xin, self.coef_.conj().T) + self.intercept_
