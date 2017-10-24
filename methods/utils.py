@@ -24,8 +24,8 @@ def jordan(A, real=False, threshold=1e-5):
     i = 0
     while i < J.shape[0]:
         comparison = np.abs(evals_copy[0] - evals_copy) < threshold
-        if comparison.size > 1:
-            algebraic_multiplicity = comparison.size
+        if np.sum(comparison) > 1:
+            algebraic_multiplicity = np.sum(comparison)
             geometric_multiplicity = np.linalg.matrix_rank(evecs[evals_idx[comparison]])
             J[i:i+algebraic_multiplicity,i:i+algebraic_multiplicity] = np.eye(algebraic_multiplicity)*evals_copy[comparison]
             if geometric_multiplicity < algebraic_multiplicity:
