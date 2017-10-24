@@ -50,7 +50,10 @@ def jordan(A, real=False, threshold=1e-8):
             evals_copy = evals_copy[mask]
             i += 2
         else:
-            J[i,i] = np.real(evals_copy[0])
+            if real:
+                J[i,i] = np.real(evals_copy[0])
+            else:
+                J[i,i] = evals_copy[0]
             evals_idx = evals_idx[1:]
             evals_copy = evals_copy[1:]
             i += 1
