@@ -351,11 +351,11 @@ def coupled_vdp_lorenz(mu, sigma, rho, beta, c1, c2):
     return f,jac
 
 
-def simulate_coupled_vdp_lorenz(t0, dt, T, x0=None, mu=1., sigma=10., rho=28., beta=8/3, c1=1., c2=1.):
+def simulate_coupled_vdp_lorenz(t0, dt, n_timesteps, x0=None, mu=1., sigma=10., rho=28., beta=8/3, c1=1., c2=1.):
     if x0 is None:
         x0 = [2., 0., -8., 7., 27.]
 
-    n_timesteps = int((T-t0)/dt) + 1
+    # n_timesteps = int((T-t0)/dt) + 1
 
     f,jac = coupled_vdp_lorenz(mu,sigma,rho,beta,c1,c2)
     r = ode(f,jac).set_integrator('zvode', method='bdf')
