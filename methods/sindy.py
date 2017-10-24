@@ -145,10 +145,8 @@ class SINDy:
         self.poly_order = order
         self.Xi = Xi
 
-    def reconstruct(self, x0, t0, dt, T):
+    def reconstruct(self, x0, t0, dt, n_timesteps):
         f = lambda t,x: np.dot(self.Xi.T, pool_data(np.real(x), poly_order=self.poly_order, use_sine=self.use_sine)[0])
-
-        n_timesteps = int((T-t0)/dt) + 1
 
         r = ode(f).set_integrator('zvode', method='bdf')
         r.set_initial_value(x0, t0)
