@@ -27,6 +27,8 @@ class DMD:
                 beta = 1/beta
             omega = optimal_svht_coef(beta,False) * np.median(s)
             r = np.sum(s > omega)
+            if r < 1:
+                r = 1
         else:
             r = np.where(s > self.threshold)[0].size
         self.rank = r
