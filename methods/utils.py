@@ -17,7 +17,7 @@ def hankel_matrix(Xin, delay):
 
 def jordan(A, real=False, threshold=1e-8):
     if real:
-        J = np.zeros(A.shape, dtype=np.complex)
+        J = np.zeros(A.shape)
     else:
         J = np.zeros(A.shape, dtype=np.complex)
     evals, evecs = la.eig(A)
