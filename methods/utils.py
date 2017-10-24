@@ -40,7 +40,7 @@ def jordan(A, real=False, threshold=1e-8):
             i += algebraic_multiplicity
         elif real and np.abs(np.imag(evals_copy[0])) > threshold:
             conj_idx = np.argsort(np.abs(np.conj(evals_copy[0]) - evals_copy))[0]
-            J[i:i+1,i:i+1] = np.eye(2)*np.real(evals_copy[0])
+            J[i:i+2,i:i+2] = np.eye(2)*np.real(evals_copy[0])
             J[i,i+1] = np.abs(np.imag(evals_copy[0]))
             J[i+1,i] = -np.abs(np.imag(evals_copy[0]))
 
