@@ -38,6 +38,7 @@ class SINDyC:
 
         self.poly_order = poly_order
         self.Xi = Xi
+        self.error = np.sum(np.mean((Xprime - np.dot(Xi.T,Theta))**2,axis=1))
 
     def fit_incremental(self, Xin, Uin, dt=None, Xprime=None, coefficient_threshold=.01, error_threshold=1e-3):
         if Xprime is None:
