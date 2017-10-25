@@ -340,24 +340,24 @@ def simulate_coupled_vdp(t0, dt, T, x0=None, mu1=1., mu2=1., c1=1., c2=1.):
     return np.array(x).T, np.array(t), np.array(xprime).T
 
 
-def coupled_vdp_lorenz(mu, sigma, rho, beta, c1, c2):
-    f = lambda t,x: [x[1] + c1*x[2], mu*(1-x[0]**2)*x[1] - x[0],
-                     sigma*(x[3] - x[2]) + c2*x[0], x[2]*(rho - x[4]) - x[3], x[2]*x[3] - beta*x[4]]
-    jac = lambda t,x : [[0., 1., c1, 0., 0.],
-                        [-2.*mu*x[0]*x[1] - 1., -mu*x[0]**2, 0., 0., 0.],
-                        [c2, 0., -sigma, sigma, 0.],
-                        [0., 0., rho - x[4], -1., -x[2]],
-                        [0., 0., x[3], x[2], -beta]]
+def coupled_vdp_lorenz(mu, sigma, rho, beta, c1, c2, tau1=1, tau2=1):
+    f = lambda t,x: [(x[1] + c1*x[2])/tau1, (mu*(1-x[0]**2)*x[1] - x[0])/tau1,
+                     (sigma*(x[3] - x[2]) + c2*x[0])/tau2, (x[2]*(rho - x[4]) - x[3])/tau2, (x[2]*x[3] - beta*x[4])/tau2]
+    jac = lambda t,x : [[0., 1./tau1, c1/tau1, 0., 0.],
+                        [(-2.*mu*x[0]*x[1] - 1.)/tau1, (-mu*x[0]**2)/tau1, 0., 0., 0.],
+                        [c2/tau2, 0., -sigma/tau2, sigma/tau2, 0.],
+                        [0., 0., (rho - x[4])/tau2, -1./tau2, -x[2]/tau2],
+                        [0., 0., x[3]/tau2, x[2]/tau2, -beta/tau2]]
     return f,jac
 
 
-def simulate_coupled_vdp_lorenz(t0, dt, n_timesteps, x0=None, mu=1., sigma=10., rho=28., beta=8/3, c1=1., c2=1.):
+def simulate_coupled_vdp_lorenz(t0, dt, n_timesteps, x0=None, mu=1., sigma=10., rho=28., beta=8/3, c1=1., c2=1., tau1=1, tau2=1):
     if x0 is None:
         x0 = [2., 0., -8., 7., 27.]
 
     # n_timesteps = int((T-t0)/dt) + 1
 
-    f,jac = coupled_vdp_lorenz(mu,sigma,rho,beta,c1,c2)
+    f,jac = coupled_vdp_lorenz(mu,sigma,rho,beta,c1,c2,tau1=tau1,tau2=tau2)
     r = ode(f,jac).set_integrator('zvode', method='bdf')
     r.set_initial_value(x0, t0)
 
