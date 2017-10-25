@@ -51,7 +51,7 @@ class DMD:
         self.P = U
 
     def reduced_dynamics(self, t):
-        return (np.exp(np.outer(self.omega,t)).T*self.b).T
+        return (np.exp(np.outer(self.omega,t)).conj().T*self.b).conj().T
 
     def reconstruct(self, t):
         return np.dot(self.Phi, self.reduced_dynamics(t))
