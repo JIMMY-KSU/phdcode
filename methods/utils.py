@@ -62,8 +62,8 @@ def jordan(A, real=False, threshold=1e-8, return_transition_matrix=False):
             mask[[0,conj_idx]] = False
 
             if return_transition_matrix:
-                P[:,i] = np.real(evecs[evals_idx[0]])
-                P[:,i+1] = np.imag(evecs[evals_idx[0]])
+                P[:,i] = np.real(evecs[:,evals_idx[0]])
+                P[:,i+1] = np.imag(evecs[:,evals_idx[0]])
 
             evals_idx = evals_idx[mask]
             evals_copy = evals_copy[mask]
@@ -76,9 +76,9 @@ def jordan(A, real=False, threshold=1e-8, return_transition_matrix=False):
 
             if return_transition_matrix:
                 if real:
-                    P[:,i] = np.real(evecs[evals_idx[0]])
+                    P[:,i] = np.real(evecs[:,evals_idx[0]])
                 else:
-                    P[:,i] = evecs[evals_idx[0]]
+                    P[:,i] = evecs[:,evals_idx[0]]
 
             evals_idx = evals_idx[1:]
             evals_copy = evals_copy[1:]
