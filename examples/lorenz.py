@@ -10,11 +10,9 @@ def lorenz(sigma, rho, beta):
     return f,jac
 
 
-def simulate_lorenz(t0, dt, T, x0=None, sigma=10., rho=28., beta=8/3):
+def simulate_lorenz(t0, dt, n_timesteps, x0=None, sigma=10., rho=28., beta=8/3):
     if x0 is None:
         x0 = [-8, 7, 27]
-
-    n_timesteps = int((T-t0)/dt) + 1
 
     f,jac = lorenz(sigma, rho, beta)
     r = ode(f,jac).set_integrator('zvode', method='bdf')
@@ -44,11 +42,9 @@ def coupled_lorenz(sigma1, rho1, beta1, sigma2, rho2, beta2, c1, c2):
     return f,jac
 
 
-def simulate_coupled_lorenz(t0, dt, T, x0=None, sigma1=10., rho1=28., beta1=8/3, sigma2=10., rho2=50., beta2=8/3, c1=1, c2=1):
+def simulate_coupled_lorenz(t0, dt, n_timesteps, x0=None, sigma1=10., rho1=28., beta1=8/3, sigma2=10., rho2=50., beta2=8/3, c1=1, c2=1):
     if x0 is None:
         x0 = [-8, 7, 27, 10, -4, 70]
-
-    n_timesteps = int((T-t0)/dt) + 1
 
     f,jac = coupled_lorenz(sigma1, rho1, beta1, sigma2, rho2, beta2, c1, c2)
     r = ode(f,jac).set_integrator('zvode', method='bdf')
