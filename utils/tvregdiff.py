@@ -90,7 +90,7 @@
 # modification, are permitted provided that the following conditions
 # are met:
 #
-#      Redistributions of source code must retain the above
+#      Redistributions of source phdcode must retain the above
 #      copyright notice, this list of conditions and the following
 #      disclaimer.
 #      Redistributions in binary form must reproduce the above
@@ -147,9 +147,9 @@ def chop( v ):
     return v[1:]
 
 
-def TVRegDiff( data, itern, alph, u0=None, scale='small', ep=1e-6, dx=None, plotflag=_has_matplotlib, diagflag=1):
+def TVRegDiff( data, itern, alph, u0=None, scale='small', ep=1e-6, dx=None, plotflag=_has_matplotlib, diagflag=1, verbose=False):
 
-    ## code starts here
+    ## phdcode starts here
     # Make sure we have a column vector
     data = np.array(data)
     if (len(data.shape) != 1):
@@ -207,11 +207,12 @@ def TVRegDiff( data, itern, alph, u0=None, scale='small', ep=1e-6, dx=None, plot
 
             if diagflag:
                 [s, info_i] = sparse.linalg.cg( linop, g, None, tol, maxit, None, P )
-                print('iteration {0:4d}: relative change = {1:.3e}, gradient norm = {2:.3e}\n'.format(ii, np.linalg.norm( s[0] ) / np.linalg.norm( u ), np.linalg.norm( g ) ))
-                if (info_i > 0):
-                    print("WARNING - convergence to tolerance not achieved!")
-                elif (info_i < 0):
-                    print("WARNING - illegal input or breakdown")
+                if verbose:
+                    print('iteration {0:4d}: relative change = {1:.3e}, gradient norm = {2:.3e}\n'.format(ii, np.linalg.norm( s[0] ) / np.linalg.norm( u ), np.linalg.norm( g ) ))
+                    if (info_i > 0):
+                        print("WARNING - convergence to tolerance not achieved!")
+                    elif (info_i < 0):
+                        print("WARNING - illegal input or breakdown")
             else:
                 [s, info_i] = sparse.linalg.cg( linop, g, None, tol, maxit, None, P )
             # Update solution.
@@ -267,11 +268,12 @@ def TVRegDiff( data, itern, alph, u0=None, scale='small', ep=1e-6, dx=None, plot
 
             if diagflag:
                 [s, info_i] = sparse.linalg.cg( linop, -g, None, tol, maxit, None, np.dot(R.transpose(), R) )
-                print('iteration {0:4d}: relative change = {1:.3e}, gradient norm = {2:.3e}\n'.format(ii, np.linalg.norm( s[0] ) / np.linalg.norm( u ), np.linalg.norm( g ) ))
-                if (info_i > 0):
-                    print("WARNING - convergence to tolerance not achieved!")
-                elif (info_i < 0):
-                    print("WARNING - illegal input or breakdown")
+                if verbose:
+                    print('iteration {0:4d}: relative change = {1:.3e}, gradient norm = {2:.3e}\n'.format(ii, np.linalg.norm( s[0] ) / np.linalg.norm( u ), np.linalg.norm( g ) ))
+                    if (info_i > 0):
+                        print("WARNING - convergence to tolerance not achieved!")
+                    elif (info_i < 0):
+                        print("WARNING - illegal input or breakdown")
 
             else:
                 [s, info_i] = sparse.linalg.cg( linop, -g, None, tol, maxit, None, np.dot(R.transpose(), R) )
