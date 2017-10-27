@@ -3,19 +3,19 @@ import scipy.linalg as la
 from scipy.integrate import ode
 
 
-def vanderpol_oscillator(mu):
-    f = lambda t,x : [x[1], mu*(1-x[0]**2)*x[1] - x[0]]
-    jac = lambda t,x : [[0., 1.], [-2.*mu*x[0]*x[1] - 1., -mu*x[0]**2]]
+def vanderpol_oscillator(mu, tau=1):
+    f = lambda t,x : [x[1]/tau, (mu*(1-x[0]**2)*x[1] - x[0])/tau]
+    jac = lambda t,x : [[0., 1./tau], [(-2.*mu*x[0]*x[1] - 1.)/tau, -mu*x[0]**2/tau]]
     return f,jac
 
 
-def simulate_vanderpol_oscillator(t0, dt, T, x0=None, mu=10.):
+def simulate_vanderpol_oscillator(t0, dt, T, x0=None, mu=10., tau=1):
     if x0 is None:
         x0 = [2.,0.]
 
     n_timesteps = int((T-t0)/dt) + 1
 
-    f,jac = vanderpol_oscillator(mu)
+    f,jac = vanderpol_oscillator(mu,tau)
     r = ode(f,jac).set_integrator('zvode', method='bdf')
     r.set_initial_value(x0, t0)
 
