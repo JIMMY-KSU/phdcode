@@ -62,16 +62,16 @@ def simulate_coupled_lorenz(t0, dt, n_timesteps, x0=None, sigma1=10., rho1=28., 
     return np.array(x).T, np.array(t), np.array(xprime).T
 
 
-def lorenz96(N, F):
+def lorenz96(N, F, tau=1):
     def f(t, x):
-        xp = []
+        xp = np.zeros(N, dtype=np.complex)
         for i in range(N-1):
-            xp.append((x[i+1] - x[i-2])*x[i-1] - x[i] + F)
-        xp.append((x[0] - x[N-3])*x[N-2] - x[N-1] + F)
-        return xp
+            xp[i] = (x[i+1] - x[i-2])*x[i-1] - x[i] + F
+        xp[N-1] = (x[0] - x[N-3])*x[N-2] - x[N-1] + F
+        return xp/tau
 
     def jac(t, x):
-        jac = np.zeros((N,N))
+        jac = np.zeros((N,N), dtype=np.complex)
         for i in range(N-1):
             jac[i,i-2] = -x[i-1]
             jac[i,i-1] = x[i+1] - x[i-2]
@@ -81,16 +81,92 @@ def lorenz96(N, F):
         jac[N-1,N-2] = x[0] - x[N-3]
         jac[N-1,N-1] = -1
         jac[N-1,0] = x[N-2]
-        return jac.tolist()
+        return jac/tau
 
     return f,jac
 
 
-def simulate_lorenz96(t0, dt, n_timesteps, N, x0=None, F=0):
+def simulate_lorenz96(t0, dt, n_timesteps, N, x0=None, F=0, tau=1):
     if x0 is None:
         x0 = np.ones(N)
 
-    f,jac = lorenz96(N, F)
+    f,jac = lorenz96(N, F, tau=tau)
+    r = ode(f,jac).set_integrator('zvode', method='bdf')
+    r.set_initial_value(x0, t0)
+
+    x = [x0]
+    t = [t0]
+    xprime = [f(t0,x0)]
+    while r.successful() and len(x) < n_timesteps:
+        r.integrate(r.t + dt)
+        x.append(np.real(r.y))
+        xprime.append(f(r.t,np.real(r.y)))
+        t.append(r.t)
+
+    return np.array(x).T, np.array(t), np.array(xprime).T
+
+
+def coupled_lorenz96(N1, N2, F1, F2, C1, C2, tau1=1, tau2=1):
+    def f(t, x):
+        C1x = np.dot(C1, x[N1:])
+        C2x = np.dot(C2, x[:N1])
+        xp = np.zeros(N1+N2, dtype=np.complex)
+        for i in range(2,N1-1):
+            xp[i] = (x[i+1] - x[i-2])*x[i-1] - x[i] + F1 + C1x[i]
+        xp[0] = (x[1] - x[N1-2])*x[N1-1] - x[0] + F1 + C1x[0]
+        xp[1] = (x[2] - x[N1-1])*x[0] - x[1] + F1 + C1x[1]
+        xp[N1-1] = (x[0] - x[N1-3])*x[N1-2] - x[N1-1] + F1 + C1x[N1-1]
+        xp[:N1] /= tau1
+
+        for i in range(2,N2-1):
+            xp[N1+i] = (x[N1+i+1] - x[N1+i-2])*x[N1+i-1] - x[N1+i] + F2 + C2x[i]
+        xp[N1] = (x[N1+1] - x[N1+N2-2])*x[N1+N2-1] - x[N1] + F2 + C2x[0]
+        xp[N1+1] = (x[N1+2] - x[N1+N2-1])*x[N1] - x[N1+1] + F2 + C2x[1]
+        xp[N1+N2-1] = (x[N1] - x[N1+N2-3])*x[N1+N2-2] - x[N1+N2-1] + F2 + C2x[N2-1]
+        xp[N1:] /= tau2
+        return xp
+
+    def jac(t, x):
+        jac = -np.eye(N1+N2, dtype=np.complex)
+        for i in range(2,N1-1):
+            jac[i,i-2] = -x[i-1]
+            jac[i,i-1] = x[i+1] - x[i-2]
+            jac[i,i+1] = x[i-1]
+        jac[0,N1-2] = -x[N1-1]
+        jac[0,N1-1] = x[1] - x[N1-2]
+        jac[0,1] = x[N1-1]
+        jac[1,N1-1] = -x[0]
+        jac[1,0] = x[2] - x[N1-1]
+        jac[1,2] = x[0]
+        jac[N1-1,N1-3] = -x[N1-2]
+        jac[N1-1,N1-2] = x[0] - x[N1-3]
+        jac[N1-1,0] = x[N1-2]
+        jac[:N1,:N1] /= tau1
+
+        for i in range(2,N2-1):
+            jac[N1+i,N1+i-2] = -x[N1+i-1]
+            jac[N1+i,N1+i-1] = x[N1+i+1] - x[N1+i-2]
+            jac[N1+i,N1+i+1] = x[N1+i-1]
+        jac[N1,N1+N2-2] = -x[N1+N2-1]
+        jac[N1,N1+N2-1] = x[N1+1] - x[N1+N2-2]
+        jac[N1,N1+1] = x[N1+N2-1]
+        jac[N1+1,N1+N2-1] = -x[N1]
+        jac[N1+1,N1] = x[N1+2] - x[N1+N2-1]
+        jac[N1+1,N1+2] = x[N1]
+        jac[N1+N2-1,N1+N2-3] = -x[N1+N2-2]
+        jac[N1+N2-1,N1+N2-2] = x[N1] - x[N1+N2-3]
+        jac[N1+N2-1,N1] = x[N1+N2-2]
+        jac[N1:,N1:] /= tau2
+        return jac
+
+    return f,jac
+
+
+def simulate_coupled_lorenz96(t0, dt, n_timesteps, N1, N2, C1, C2, x0=None, F1=0, F2=0, tau1=1, tau2=1):
+    if x0 is None:
+        x0 = np.ones(N1+N2)
+
+    f,jac = coupled_lorenz96(N1, N2, F1, F2, C1, C2, tau1=tau1, tau2=tau2)
     r = ode(f,jac).set_integrator('zvode', method='bdf')
     r.set_initial_value(x0, t0)
 
