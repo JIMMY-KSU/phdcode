@@ -65,17 +65,22 @@ def simulate_coupled_lorenz(t0, dt, n_timesteps, x0=None, sigma1=10., rho1=28., 
 def lorenz96(N, F):
     def f(t, x):
         xp = []
-        for i in range(N):
+        for i in range(N-1):
             xp.append((x[i+1] - x[i-2])*x[i-1] - x[i] + F)
+        xp.append((x[0] - x[N-3])*x[N-2] - x[N-1] + F)
         return xp
 
     def jac(t, x):
         jac = np.zeros((N,N))
-        for i in range(N):
+        for i in range(N-1):
             jac[i,i-2] = -x[i-1]
             jac[i,i-1] = x[i+1] - x[i-2]
             jac[i,i] = -1
             jac[i,i+1] = x[i-1]
+        jac[N-1,N-3] = -x[N-2]
+        jac[N-1,N-2] = x[0] - x[N-3]
+        jac[N-1,N-1] = -1
+        jac[N-1,0] = x[N-2]
         return jac.tolist()
 
     return f,jac
