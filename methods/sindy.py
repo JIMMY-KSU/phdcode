@@ -3,7 +3,7 @@ from scipy.integrate import ode
 from scipy.special import binom
 
 
-def pool_data(Xin, poly_order=2, use_sine=False, varname='x'):
+def pool_data(Xin, poly_order=2, use_sine=False, include_constant=True, varname='x'):
     if poly_order > 5:
         poly_order = 5
 
@@ -21,9 +21,12 @@ def pool_data(Xin, poly_order=2, use_sine=False, varname='x'):
 
     labels = []
 
-    Xout[0] = np.ones(T)
-    index = 1
-    labels.append('1')
+    if include_constant:
+        Xout[0] = np.ones(T)
+        index = 1
+        labels.append('1')
+    else:
+        index = 0
 
     for i in range(n):
         Xout[index] = Xin[i]

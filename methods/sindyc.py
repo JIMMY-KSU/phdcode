@@ -19,7 +19,7 @@ class SINDyC:
             U = Uin
 
         Thetax,labelsx = pool_data(X, poly_order, self.use_sine)
-        Thetau,labelsu = pool_data(U, poly_order, self.use_sine, varname='u')
+        Thetau,labelsu = pool_data(U, poly_order, self.use_sine, include_constant=False, varname='u')
 
         Theta = np.concatenate((Thetax,Thetau), axis=0)
         self.labels = labelsx + labelsu
@@ -55,7 +55,7 @@ class SINDyC:
 
         for order in poly_orders:
             Thetax,labelsx = pool_data(X, order, self.use_sine)
-            Thetau,labelsu = pool_data(U, order, self.use_sine, varname='u')
+            Thetau,labelsu = pool_data(U, order, self.use_sine, include_constant=False, varname='u')
 
             Theta = np.concatenate((Thetax,Thetau), axis=0)
             self.labels = labelsx + labelsu
@@ -87,7 +87,7 @@ class SINDyC:
         f = lambda t,x: np.dot(self.Xi.T, np.concatenate((pool_data(np.real(x[:n]), poly_order=self.poly_order,
                                                                     use_sine=self.use_sine)[0],
                                                           pool_data(np.real(x[n:]), poly_order=self.poly_order,
-                                                                   use_sine=self.use_sine)[0]),
+                                                                   use_sine=self.use_sine, include_constant=False)[0]),
                                                          axis=0))
 
         r = ode(f).set_integrator('zvode', method='bdf')
