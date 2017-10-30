@@ -60,3 +60,42 @@ def simulate_coupled_lorenz(t0, dt, n_timesteps, x0=None, sigma1=10., rho1=28., 
         t.append(r.t)
 
     return np.array(x).T, np.array(t), np.array(xprime).T
+
+
+def lorenz96(N, F):
+    def f(t, x):
+        xp = []
+        for i in range(N):
+            xp.append((x[i+1] - x[i-2])*x[i-1] - x[i] + F)
+        return xp
+
+    def jac(t, x):
+        jac = np.zeros((N,N))
+        for i in range(N):
+            jac[i,i-2] = -x[i-1]
+            jac[i,i-1] = x[i+1] - x[i-2]
+            jac[i,i] = -1
+            jac[i,i+1] = x[i-1]
+        return jac.tolist()
+
+    return f,jac
+
+
+def simulate_lorenz96(t0, dt, n_timesteps, N, x0=None, F=0):
+    if x0 is None:
+        x0 = np.ones(N)
+
+    f,jac = lorenz96(N, F)
+    r = ode(f,jac).set_integrator('zvode', method='bdf')
+    r.set_initial_value(x0, t0)
+
+    x = [x0]
+    t = [t0]
+    xprime = [f(t0,x0)]
+    while r.successful() and len(x) < n_timesteps:
+        r.integrate(r.t + dt)
+        x.append(np.real(r.y))
+        xprime.append(f(r.t,np.real(r.y)))
+        t.append(r.t)
+
+    return np.array(x).T, np.array(t), np.array(xprime).T
