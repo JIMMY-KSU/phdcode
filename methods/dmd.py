@@ -60,13 +60,16 @@ class DMD:
                 if np.iscomplex(omega_copy[0]):
                     Phi_real[:,i] = np.real(Phi[:,omega_idx[0]])
                     omega_realpart.append(np.real(omega_copy[0]))
+                    omega_realpart.append(np.real(omega_copy[0]))
 
                     if np.imag(omega_copy[0]) > 0:
                         Phi_real[:,i+1] = np.imag(Phi[:,omega_idx[0]])
                         omega_imagpart.append(np.imag(omega_copy[0]))
+                        omega_imagpart.append(-np.imag(omega_copy[0]))
                     else:
                         Phi_real[:,i+1] = -np.imag(Phi[:,omega_idx[0]])
                         omega_imagpart.append(-np.imag(omega_copy[0]))
+                        omega_imagpart.append(np.imag(omega_copy[0]))
 
                     # find complex conjugate eval
                     conj_idx = np.argsort(np.abs(np.conj(omega_copy[0]) - omega_copy))[0]
