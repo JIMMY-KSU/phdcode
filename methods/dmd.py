@@ -11,6 +11,7 @@ class DMD:
 
     def fit(self, Xin, dt):
         self.dt = dt
+        self.real = (np.where(np.iscomplex(Xin))[0].size < 1)
 
         if self.time_delay > 0:
             H = hankel_matrix(Xin, self.time_delay)
@@ -40,9 +41,52 @@ class DMD:
         A_tilde = np.dot(U.conj().T, tmp)
         evals, evecs = la.eig(A_tilde)
 
-        self.Phi = np.dot(tmp, evecs)
-        self.omega = np.log(evals)/dt
-        self.b = la.lstsq(self.Phi, X[:,0])[0]
+        if (np.where(np.iscomplex(Xin))[0].size > 0):
+            self.Phi = np.dot(tmp, evecs)
+            self.omega = np.log(evals)/dt
+            self.b = la.lstsq(self.Phi, X[:,0])[0]
+        else:
+            Phi = np.dot(tmp, evecs)
+            omega = np.log(evals)/dt
+
+            Phi_real = np.zeros(Phi.shape)
+            omega_realpart = []
+            omega_imagpart = []
+
+            omega_idx = np.arange(omega.size)
+            omega_copy = omega.copy()
+            i = 0
+            while i < omega.size:
+                if np.iscomplex(omega_copy[0]):
+                    Phi_real[:,i] = np.real(Phi[:,omega_idx[0]])
+                    omega_realpart.append(np.real(omega_copy[0]))
+
+                    if np.imag(omega_copy[0]) > 0:
+                        Phi_real[:,i+1] = np.imag(Phi[:,omega_idx[0]])
+                        omega_imagpart.append(np.imag(omega_copy[0]))
+                    else:
+                        Phi_real[:,i+1] = -np.imag(Phi[:,omega_idx[0]])
+                        omega_imagpart.append(-np.imag(omega_copy[0]))
+
+                    # find complex conjugate eval
+                    conj_idx = np.argsort(np.abs(np.conj(omega_copy[0]) - omega_copy))[0]
+
+                    # mask out this eigenvalue and its conjugate
+                    mask = np.ones(omega_idx.size, dtype=bool)
+                    mask[[0,conj_idx]] = False
+                    omega_idx = omega_idx[mask]
+                    omega_copy = omega_copy[mask]
+                    i += 2
+                else:
+                    omega_realpart.append(np.real(omega_copy[0]))
+                    Phi_real[:,i] = np.real(Phi[:,omega_idx[0]])
+                    omega_idx = omega_idx[1:]
+                    omega_copy = omega_copy[1:]
+                    i += 1
+
+            self.Phi = Phi_real
+            self.omega = np.vstack((np.array(omega_realpart), np.array(omega_imagpart)))
+            self.b = la.lstsq(self.Phi, np.real(X[:,0]))[0]
 
         self.A = np.dot(tmp, U.conj().T)
         self.Atilde = A_tilde
@@ -51,6 +95,13 @@ class DMD:
         self.P = U
 
     def reduced_dynamics(self, t):
+        if self.omega.shape[0] == 2:
+            x = np.zeros((self.rank, t.size))
+            for i in range(self.omega.shape[1]):
+                if self.omega[1,i] > 0:
+                    x[i] += (np.cos(self.omega[1,i],t)*np.exp(self.omega[0,i],t))*self.b[i]
+                else:
+                    x[i] += (np.sin(self.omega[1,i],t)*np.exp(self.omega[0,i],t))*self.b[i]
         return (np.exp(np.outer(self.omega,t)).conj().T*self.b).conj().T
 
     def reconstruct(self, t):
