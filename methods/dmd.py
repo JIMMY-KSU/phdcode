@@ -102,9 +102,9 @@ class DMD:
             x = np.zeros((self.rank, t.size))
             for i in range(self.omega.shape[1]):
                 if self.omega[1,i] > 0:
-                    x[i] += (np.cos(self.omega[1,i],t)*np.exp(self.omega[0,i],t))*self.b[i]
+                    x[i] = (np.cos(self.omega[1,i]*t)*np.exp(self.omega[0,i]*t))*self.b[i]
                 else:
-                    x[i] += (np.sin(self.omega[1,i],t)*np.exp(self.omega[0,i],t))*self.b[i]
+                    x[i] = (np.sin(self.omega[1,i]*t)*np.exp(self.omega[0,i]*t))*self.b[i]
             return x
         return (np.exp(np.outer(self.omega,t)).conj().T*self.b).conj().T
 
