@@ -51,7 +51,7 @@ class DMD:
         else:
             Phi = np.dot(tmp, evecs)
             omega = np.log(evals)/dt
-            b = la.lstsq(self.Phi, X[:,0])[0]
+            b = la.lstsq(Phi, X[:,0])[0]
 
             Phi_real = np.zeros(Phi.shape)
             omega_realpart = []
