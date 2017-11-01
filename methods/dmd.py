@@ -9,9 +9,12 @@ class DMD:
         self.threshold = threshold
         self.time_delay = time_delay
 
-    def fit(self, Xin, dt):
+    def fit(self, Xin, dt, real=None):
         self.dt = dt
-        self.real = (np.where(np.iscomplex(Xin))[0].size < 1)
+        if real is None:
+            self.real = (np.where(np.iscomplex(Xin))[0].size < 1)
+        else:
+            self.real = real
 
         if self.time_delay > 0:
             H = hankel_matrix(Xin, self.time_delay)
