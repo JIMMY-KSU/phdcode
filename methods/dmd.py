@@ -51,28 +51,40 @@ class DMD:
         else:
             Phi = np.dot(tmp, evecs)
             omega = np.log(evals)/dt
+            b = la.lstsq(self.Phi, X[:,0])[0]
 
             Phi_real = np.zeros(Phi.shape)
             omega_realpart = []
             omega_imagpart = []
+
+            omega_tmp = []
+            b_tmp = []
 
             omega_idx = np.arange(omega.size)
             omega_copy = omega.copy()
             i = 0
             while i < omega.size:
                 if np.iscomplex(omega_copy[0]):
-                    Phi_real[:,i] = np.real(Phi[:,omega_idx[0]])
+                    Phi_real[:,i] = 2*np.real(Phi[:,omega_idx[0]])
                     omega_realpart.append(np.real(omega_copy[0]))
                     omega_realpart.append(np.real(omega_copy[0]))
+                    omega_tmp.append(omega_copy[0])
+                    b_tmp.append(b[omega_idx[0]])
 
-                    if np.imag(omega_copy[0]) > 0:
-                        Phi_real[:,i+1] = np.imag(Phi[:,omega_idx[0]])
-                        omega_imagpart.append(np.imag(omega_copy[0]))
-                        omega_imagpart.append(-np.imag(omega_copy[0]))
-                    else:
-                        Phi_real[:,i+1] = -np.imag(Phi[:,omega_idx[0]])
-                        omega_imagpart.append(-np.imag(omega_copy[0]))
-                        omega_imagpart.append(np.imag(omega_copy[0]))
+                    Phi_real[:,i+1] = -2*np.imag(Phi[:,omega_idx[0]])
+                    omega_imagpart.append(np.imag(omega_copy[0]))
+                    omega_imagpart.append(-np.imag(omega_copy[0]))
+                    omega_tmp.append(omega_copy[0].conj())
+                    b_tmp.append(b[omega_idx[0]].conj())
+
+                    # if np.imag(omega_copy[0]) > 0:
+                    #     Phi_real[:,i+1] = np.imag(Phi[:,omega_idx[0]])
+                    #     omega_imagpart.append(np.imag(omega_copy[0]))
+                    #     omega_imagpart.append(-np.imag(omega_copy[0]))
+                    # else:
+                    #     Phi_real[:,i+1] = -np.imag(Phi[:,omega_idx[0]])
+                    #     omega_imagpart.append(-np.imag(omega_copy[0]))
+                    #     omega_imagpart.append(np.imag(omega_copy[0]))
 
                     # find complex conjugate eval
                     conj_idx = np.argsort(np.abs(np.conj(omega_copy[0]) - omega_copy))[0]
@@ -85,6 +97,9 @@ class DMD:
                     i += 2
                 else:
                     omega_realpart.append(np.real(omega_copy[0]))
+                    omega_imagpart.append(0.0)
+                    omega_tmp.append(omega_copy[0])
+                    b_tmp.append(np.real(b[omega_idx[0]]))
                     Phi_real[:,i] = np.real(Phi[:,omega_idx[0]])
                     omega_idx = omega_idx[1:]
                     omega_copy = omega_copy[1:]
@@ -92,7 +107,9 @@ class DMD:
 
             self.Phi = Phi_real
             self.omega = np.vstack((np.array(omega_realpart), np.array(omega_imagpart)))
-            self.b = la.lstsq(self.Phi, np.real(X[:,0]))[0]
+            # self.b = la.lstsq(self.Phi, np.real(X[:,0]))[0]
+            # self.omega = np.array(omega_tmp)
+            self.b = np.array(b_tmp)
 
         self.A = np.dot(tmp, U.conj().T)
         self.Atilde = A_tilde
@@ -103,11 +120,23 @@ class DMD:
     def reduced_dynamics(self, t):
         if self.omega.shape[0] == 2:
             x = np.zeros((self.rank, t.size))
-            for i in range(self.omega.shape[1]):
-                if self.omega[1,i] > 0:
-                    x[i] = (np.cos(self.omega[1,i]*t)*np.exp(self.omega[0,i]*t))*self.b[i]
+            # for i in range(self.omega.shape[1]):
+            #     if self.omega[1,i] > 0:
+            #         x[i] = (np.cos(self.omega[1,i]*t)*np.exp(self.omega[0,i]*t))*self.b[i]
+            #     else:
+            #         x[i] = (np.sin(self.omega[1,i]*t)*np.exp(self.omega[0,i]*t))*self.b[i]
+            x = np.zeros((self.rank, t.size))
+            i = 0
+            while i < self.omega.shape[1]:
+                if self.omega[1,i] != 0:
+                    x[i] = np.exp(self.omega[0,i]*t)*(np.real(self.b[i])*np.cos(self.omega[1,i]*t)
+                                                      - np.imag(self.b[i])*np.sin(self.omega[1,i]*t))
+                    x[i+1] = np.exp(self.omega[0,i]*t)*(np.imag(self.b[i])*np.cos(self.omega[1,i]*t)
+                                                      + np.real(self.b[i])*np.sin(self.omega[1,i]*t))
+                    i += 2
                 else:
-                    x[i] = (np.sin(self.omega[1,i]*t)*np.exp(self.omega[0,i]*t))*self.b[i]
+                    x[i] = np.exp(self.omega[0,i]*t)*np.real(self.b[i])
+                    i += 1
             return x
         return (np.exp(np.outer(self.omega,t)).conj().T*self.b).conj().T
 
