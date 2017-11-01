@@ -44,7 +44,7 @@ class DMD:
         A_tilde = np.dot(U.conj().T, tmp)
         evals, evecs = la.eig(A_tilde)
 
-        if (np.where(np.iscomplex(Xin))[0].size > 0):
+        if self.real:
             self.Phi = np.dot(tmp, evecs)
             self.omega = np.log(evals)/dt
             self.b = la.lstsq(self.Phi, X[:,0])[0]
