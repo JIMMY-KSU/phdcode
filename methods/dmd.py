@@ -107,12 +107,6 @@ class DMD:
     def reduced_dynamics(self, t):
         if self.omega.ndim == 2:
             x = np.zeros((self.rank, t.size))
-            # for i in range(self.omega.shape[1]):
-            #     if self.omega[1,i] > 0:
-            #         x[i] = (np.cos(self.omega[1,i]*t)*np.exp(self.omega[0,i]*t))*self.b[i]
-            #     else:
-            #         x[i] = (np.sin(self.omega[1,i]*t)*np.exp(self.omega[0,i]*t))*self.b[i]
-            x = np.zeros((self.rank, t.size))
             i = 0
             while i < self.omega.shape[1]:
                 if self.omega[1,i] != 0:
