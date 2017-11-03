@@ -88,3 +88,10 @@ def jordan(A, real=False, threshold=1e-8, return_transition_matrix=False):
         return J,P
     else:
         return J
+
+
+def integrate(X, dt):
+    X_diff = dt/2*(X[:,1:] + X[:,:-1])
+    X_int = np.zeros(X.shape)
+    X_int[:,1:] = np.cumsum(X_diff, axis=1)
+    return X_int
