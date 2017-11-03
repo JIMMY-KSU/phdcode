@@ -107,6 +107,8 @@ class SINDy:
             Theta,labels = pool_data(Xin, poly_order, self.use_sine)
             self.labels = labels
             RHS = integrate(Theta, dt)
+        else:
+            raise ValueError('invalid fitting method')
 
         n,T = LHS.shape
         Xi = np.linalg.lstsq(RHS.T,LHS.T)[0]
@@ -124,25 +126,37 @@ class SINDy:
         self.Xi = Xi
         self.error = np.sum(np.mean((LHS - np.dot(Xi.T,RHS))**2,axis=1))
 
-
     def fit_incremental(self, Xin, dt=None, Xprime=None, coefficient_threshold=.01, error_threshold=1e-3):
-        if Xprime is None:
+        if self.method == 'derivative':
+            if Xprime is None:
+                if dt is None:
+                    raise ValueError('must provide at least one of derivative or time step')
+                Xprime = (Xin[:,2:]-Xin[:,:-2])/(2*dt)
+                X = Xin[:,1:-1]
+            else:
+                X = Xin
+        elif self.method == 'integral':
             if dt is None:
-                raise ValueError('must provide at least one of derivative or time step')
-            Xprime = (Xin[:,2:]-Xin[:,:-2])/(2*dt)
-            X = Xin[:,1:-1]
-        else:
+                raise ValueError('must provide time step')
             X = Xin
+        else:
+            raise ValueError('invalid fitting method')
 
         poly_orders = np.arange(1,6)
 
         for order in poly_orders:
-            Theta,labels = pool_data(X, order, self.use_sine)
+            if self.method == 'derivative':
+                RHS,labels = pool_data(X, order, self.use_sine)
+                LHS = X
+            else:
+                Theta,labels = pool_data(X, order, self.use_sine)
+                RHS = integrate(Theta, dt)
+                LHS = X - np.broadcast_to(X[:,0], (X.shape[1],X.shape[0])).T
 
             self.labels = labels
 
-            n,T = Xprime.shape
-            Xi = np.linalg.lstsq(Theta.T,Xprime.T)[0]
+            n,T = LHS.shape
+            Xi = np.linalg.lstsq(RHS.T,LHS.T)[0]
 
             for k in range(10):
                 small_inds = (np.abs(Xi) < coefficient_threshold)
@@ -151,9 +165,9 @@ class SINDy:
                     big_inds = ~small_inds[:,i]
                     if np.where(big_inds)[0].size == 0:
                         continue
-                    Xi[big_inds,i] = np.linalg.lstsq(Theta[big_inds].T, Xprime[i])[0]
+                    Xi[big_inds,i] = np.linalg.lstsq(RHS[big_inds].T, LHS[i])[0]
 
-            error = np.sum(np.mean((Xprime - np.dot(Xi.T,Theta))**2,axis=1))
+            error = np.sum(np.mean((LHS - np.dot(Xi.T,RHS))**2,axis=1))
             print("order %d, error %f" % (order, error))
             if error < error_threshold:
                 break
