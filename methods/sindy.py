@@ -147,7 +147,7 @@ class SINDy:
         for order in poly_orders:
             if self.method == 'derivative':
                 RHS,labels = pool_data(X, order, self.use_sine)
-                LHS = X
+                LHS = Xprime
             else:
                 Theta,labels = pool_data(X, order, self.use_sine)
                 RHS = integrate(Theta, dt)
