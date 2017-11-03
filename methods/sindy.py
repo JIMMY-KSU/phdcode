@@ -97,7 +97,7 @@ class SINDy:
                 X = Xin
 
             LHS = Xprime
-            RHS,labels = pool_data(LHS, poly_order, self.use_sine)
+            RHS,labels = pool_data(X, poly_order, self.use_sine)
             self.labels = labels
         elif self.method == 'integral':
             if dt is None:
@@ -106,7 +106,6 @@ class SINDy:
             LHS = Xin - Xin[:,0]
             Theta,labels = pool_data(Xin, poly_order, self.use_sine)
             self.labels = labels
-
             RHS = integrate(Theta, dt)
 
         n,T = LHS.shape
