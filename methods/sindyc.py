@@ -71,6 +71,7 @@ class SINDyC:
             if dt is None:
                 raise ValueError('must provide time step')
             X = Xin
+            U = Uin
         else:
             raise ValueError('invalid fitting method')
 
