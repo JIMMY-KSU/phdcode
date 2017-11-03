@@ -103,7 +103,7 @@ class SINDy:
             if dt is None:
                 raise ValueError('must provide time step')
 
-            LHS = Xin - Xin[:,0]
+            LHS = Xin - np.broadcast_to(Xin[:,0], (Xin.shape[1],Xin.shape[0])).T
             Theta,labels = pool_data(Xin, poly_order, self.use_sine)
             self.labels = labels
             RHS = integrate(Theta, dt)
