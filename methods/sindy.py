@@ -167,7 +167,7 @@ class SINDy:
 
             if self.optimization_method == 'lasso':
                 lasso = Lasso(fit_intercept=False)
-                lasso.fit(RHS, LHS)
+                lasso.fit(RHS.T, LHS.T)
                 Xi = lasso.coef_
             else:
                 for k in range(10):
