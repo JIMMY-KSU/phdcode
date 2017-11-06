@@ -118,7 +118,7 @@ class SINDy:
         if self.optimization_method == 'lasso':
             lasso = Lasso(fit_intercept=False)
             lasso.fit(RHS.T, LHS.T)
-            Xi = lasso.coef_
+            Xi = lasso.coef_.T
         else:
             for k in range(10):
                 small_inds = (np.abs(Xi) < coefficient_threshold)
@@ -168,7 +168,7 @@ class SINDy:
             if self.optimization_method == 'lasso':
                 lasso = Lasso(fit_intercept=False)
                 lasso.fit(RHS.T, LHS.T)
-                Xi = lasso.coef_
+                Xi = lasso.coef_.T
             else:
                 for k in range(10):
                     small_inds = (np.abs(Xi) < coefficient_threshold)
