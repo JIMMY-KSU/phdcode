@@ -83,13 +83,13 @@ def pool_data(Xin, poly_order=2, use_sine=False, include_constant=True, varname=
 
 
 class SINDy:
-    def __init__(self, use_sine=False, derivation_method='derivative', optimization_method='threshold'):
+    def __init__(self, use_sine=False, differentiation_method='derivative', optimization_method='threshold'):
         self.use_sine = use_sine
-        self.derivation_method = derivation_method
+        self.differentiation_method = differentiation_method
         self.optimization_method = optimization_method
 
     def fit(self, Xin, poly_order, dt=None, Xprime=None, coefficient_threshold=.01):
-        if self.derivation_method == 'derivative':
+        if self.differentiation_method == 'derivative':
             if Xprime is None:
                 if dt is None:
                     raise ValueError('must provide at least one of derivative or time step')
@@ -101,7 +101,7 @@ class SINDy:
             LHS = Xprime
             RHS,labels = pool_data(X, poly_order, self.use_sine)
             self.labels = labels
-        elif self.derivation_method == 'integral':
+        elif self.differentiation_method == 'integral':
             if dt is None:
                 raise ValueError('must provide time step')
 
@@ -117,7 +117,7 @@ class SINDy:
 
         if self.optimization_method == 'lasso':
             lasso = Lasso(fit_intercept=False)
-            lasso.fit(RHS, LHS)
+            lasso.fit(RHS.T, LHS.T)
             Xi = lasso.coef_
         else:
             for k in range(10):
@@ -134,7 +134,7 @@ class SINDy:
         self.error = np.sum(np.mean((LHS - np.dot(Xi.T,RHS))**2,axis=1))
 
     def fit_incremental(self, Xin, dt=None, Xprime=None, coefficient_threshold=.01, error_threshold=1e-3):
-        if self.derivation_method == 'derivative':
+        if self.differentiation_method == 'derivative':
             if Xprime is None:
                 if dt is None:
                     raise ValueError('must provide at least one of derivative or time step')
@@ -142,7 +142,7 @@ class SINDy:
                 X = Xin[:,1:-1]
             else:
                 X = Xin
-        elif self.derivation_method == 'integral':
+        elif self.differentiation_method == 'integral':
             if dt is None:
                 raise ValueError('must provide time step')
             X = Xin
@@ -152,7 +152,7 @@ class SINDy:
         poly_orders = np.arange(1,6)
 
         for order in poly_orders:
-            if self.derivation_method == 'derivative':
+            if self.differentiation_method == 'derivative':
                 RHS,labels = pool_data(X, order, self.use_sine)
                 LHS = Xprime
             else:
