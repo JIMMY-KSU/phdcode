@@ -92,23 +92,23 @@ def simulate_coupled_vdp_duffing(t0, dt, T, x0=None, mu=1., alpha=1., beta=2., g
     return np.array(x).T, np.array(t), np.array(xprime).T
 
 
-def coupled_linear(k1,k2,c1,c2):
-    f = lambda t,x : [x[1] + c1*x[2], -k1*x[0],
-                      x[3] + c2*x[0], -k2*x[2]]
-    jac = lambda t,x : [[0., 1., c1, 0.],
-                        [-k1, 0., 0., 0.],
-                        [c2, 0., 0., 1.],
-                        [0., 0., -k2, 0.]]
+def coupled_linear(k1, k2, c1, c2, tau1=1., tau2=1.):
+    f = lambda t,x : [(x[1] + c1*x[2])/tau1, -k1*x[0]/tau1,
+                      (x[3] + c2*x[0])/tau2, -k2*x[2]/tau2]
+    jac = lambda t,x : [[0., 1./tau1, c1/tau1, 0.],
+                        [-k1/tau1, 0., 0., 0.],
+                        [c2/tau2, 0., 0., 1./tau2],
+                        [0., 0., -k2/tau2, 0.]]
     return f,jac
 
 
-def simulate_coupled_linear(t0, dt, T, x0=None, k1=1.1, k2=.5, c1=-.5, c2=-1.):
+def simulate_coupled_linear(t0, dt, T, x0=None, k1=1.1, k2=.5, c1=-.5, c2=-1., tau1=1., tau2=1.):
     if x0 is None:
         x0 = [1.,0.,0.,1.]
 
     n_timesteps = int((T-t0)/dt) + 1
 
-    f,jac = coupled_linear(k1,k2,c1,c2)
+    f,jac = coupled_linear(k1, k2, c1, c2, tau1=tau1, tau2=tau2)
     r = ode(f,jac).set_integrator('zvode', method='bdf')
     r.set_initial_value(x0, t0)
 
