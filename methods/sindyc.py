@@ -2,15 +2,17 @@ import numpy as np
 from scipy.integrate import ode
 from .sindy import pool_data
 from .utils import integrate
+from sklearn.linear_model import Lasso
 
 
 class SINDyC:
-    def __init__(self, use_sine=False, method='derivative'):
+    def __init__(self, use_sine=False, differentiation_method='derivative', optimization_method='threshold'):
         self.use_sine = use_sine
-        self.method = method
+        self.differentiation_method = differentiation_method
+        self.optimization_method = optimization_method
 
-    def fit(self, Xin, Uin, poly_order, dt=None, Xprime=None, coefficient_threshold=.01):
-        if self.method == 'derivative':
+    def fit(self, Xin, Uin, poly_order, dt=None, Xprime=None, coefficient_threshold=.01, alpha=1.0):
+        if self.differentiation_method == 'derivative':
             if Xprime is None:
                 if dt is None:
                     raise ValueError('must provide at least one of derivative or time step')
@@ -25,7 +27,7 @@ class SINDyC:
             Thetax,labelsx = pool_data(X, poly_order, self.use_sine)
             Thetau,labelsu = pool_data(U, poly_order, self.use_sine, include_constant=False, varname='u')
             RHS = np.concatenate((Thetax,Thetau), axis=0)
-        elif self.method == 'integral':
+        elif self.differentiation_method == 'integral':
             if dt is None:
                 raise ValueError('must provide time step')
 
@@ -43,21 +45,27 @@ class SINDyC:
         n,T = LHS.shape
         Xi = np.linalg.lstsq(RHS.T,LHS.T)[0]
 
-        for k in range(10):
-            small_inds = (np.abs(Xi) < coefficient_threshold)
-            Xi[small_inds] = 0
-            for i in range(n):
-                big_inds = ~small_inds[:,i]
-                if np.where(big_inds)[0].size == 0:
-                    continue
-                Xi[big_inds,i] = np.linalg.lstsq(RHS[big_inds].T, LHS[i])[0]
+        if self.optimization_method == 'lasso':
+            lasso = Lasso(fit_intercept=False, alpha=alpha)
+            lasso.fit(RHS.T, LHS.T)
+            Xi = lasso.coef_.T
+        else:
+            for k in range(10):
+                small_inds = (np.abs(Xi) < coefficient_threshold)
+                Xi[small_inds] = 0
+                for i in range(n):
+                    big_inds = ~small_inds[:,i]
+                    if np.where(big_inds)[0].size == 0:
+                        continue
+                    Xi[big_inds,i] = np.linalg.lstsq(RHS[big_inds].T, LHS[i])[0]
 
         self.poly_order = poly_order
         self.Xi = Xi
         self.error = np.sum(np.mean((LHS - np.dot(Xi.T,RHS))**2,axis=1))
 
-    def fit_incremental(self, Xin, Uin, dt=None, Xprime=None, coefficient_threshold=.01, error_threshold=1e-3):
-        if self.method == 'derivative':
+    def fit_incremental(self, Xin, Uin, dt=None, Xprime=None, coefficient_threshold=.01, error_threshold=1e-3,
+                        alpha=1.0):
+        if self.differentiation_method == 'derivative':
             if Xprime is None:
                 if dt is None:
                     raise ValueError('must provide at least one of derivative or time step')
@@ -67,7 +75,7 @@ class SINDyC:
             else:
                 X = Xin
                 U = Uin
-        elif self.method == 'integral':
+        elif self.differentiation_method == 'integral':
             if dt is None:
                 raise ValueError('must provide time step')
             X = Xin
@@ -81,7 +89,7 @@ class SINDyC:
             Thetax,labelsx = pool_data(X, order, self.use_sine)
             Thetau,labelsu = pool_data(U, order, self.use_sine, include_constant=False, varname='u')
             Theta = np.concatenate((Thetax,Thetau), axis=0)
-            if self.method == 'derivative':
+            if self.differentiation_method == 'derivative':
                 RHS = Theta
                 LHS = Xprime
             else:
@@ -93,14 +101,19 @@ class SINDyC:
             n,T = LHS.shape
             Xi = np.linalg.lstsq(RHS.T,LHS.T)[0]
 
-            for k in range(10):
-                small_inds = (np.abs(Xi) < coefficient_threshold)
-                Xi[small_inds] = 0
-                for i in range(n):
-                    big_inds = ~small_inds[:,i]
-                    if np.where(big_inds)[0].size == 0:
-                        continue
-                    Xi[big_inds,i] = np.linalg.lstsq(RHS[big_inds].T, LHS[i])[0]
+            if self.optimization_method == 'lasso':
+                lasso = Lasso(fit_intercept=False, alpha=alpha)
+                lasso.fit(RHS.T, LHS.T)
+                Xi = lasso.coef_.T
+            else:
+                for k in range(10):
+                    small_inds = (np.abs(Xi) < coefficient_threshold)
+                    Xi[small_inds] = 0
+                    for i in range(n):
+                        big_inds = ~small_inds[:,i]
+                        if np.where(big_inds)[0].size == 0:
+                            continue
+                        Xi[big_inds,i] = np.linalg.lstsq(RHS[big_inds].T, LHS[i])[0]
 
             error = np.sum(np.mean((LHS - np.dot(Xi.T,RHS))**2,axis=1))
             print("order %d, error %f" % (order, error))

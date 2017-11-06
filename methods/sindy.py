@@ -88,7 +88,7 @@ class SINDy:
         self.differentiation_method = differentiation_method
         self.optimization_method = optimization_method
 
-    def fit(self, Xin, poly_order, dt=None, Xprime=None, coefficient_threshold=.01):
+    def fit(self, Xin, poly_order, dt=None, Xprime=None, coefficient_threshold=.01, alpha=1.0):
         if self.differentiation_method == 'derivative':
             if Xprime is None:
                 if dt is None:
@@ -116,7 +116,7 @@ class SINDy:
         Xi = np.linalg.lstsq(RHS.T,LHS.T)[0]
 
         if self.optimization_method == 'lasso':
-            lasso = Lasso(fit_intercept=False)
+            lasso = Lasso(fit_intercept=False, alpha=alpha)
             lasso.fit(RHS.T, LHS.T)
             Xi = lasso.coef_.T
         else:
@@ -133,7 +133,7 @@ class SINDy:
         self.Xi = Xi
         self.error = np.sum(np.mean((LHS - np.dot(Xi.T,RHS))**2,axis=1))
 
-    def fit_incremental(self, Xin, dt=None, Xprime=None, coefficient_threshold=.01, error_threshold=1e-3):
+    def fit_incremental(self, Xin, dt=None, Xprime=None, coefficient_threshold=.01, error_threshold=1e-3, alpha=1.0):
         if self.differentiation_method == 'derivative':
             if Xprime is None:
                 if dt is None:
@@ -166,7 +166,7 @@ class SINDy:
             Xi = np.linalg.lstsq(RHS.T,LHS.T)[0]
 
             if self.optimization_method == 'lasso':
-                lasso = Lasso(fit_intercept=False)
+                lasso = Lasso(fit_intercept=False, alpha=alpha)
                 lasso.fit(RHS.T, LHS.T)
                 Xi = lasso.coef_.T
             else:
