@@ -2,19 +2,19 @@ import numpy as np
 from scipy.integrate import ode
 
 
-def lorenz(sigma, rho, beta):
-    f = lambda t,x : [sigma*(x[1] - x[0]), x[0]*(rho - x[2]) - x[1], x[0]*x[1] - beta*x[2]]
-    jac = lambda t,x : [[-sigma, sigma, 0.],
-                        [rho - x[2], -1., -x[0]],
-                        [x[1], x[0], -beta]]
+def lorenz(sigma, rho, beta, tau=1.):
+    f = lambda t,x : [sigma*(x[1] - x[0])/tau, (x[0]*(rho - x[2]) - x[1])/tau, (x[0]*x[1] - beta*x[2])/tau]
+    jac = lambda t,x : [[-sigma/tau, sigma/tau, 0.],
+                        [(rho - x[2])/tau, -1./tau, -x[0]/tau],
+                        [x[1]/tau, x[0]/tau, -beta/tau]]
     return f,jac
 
 
-def simulate_lorenz(t0, dt, n_timesteps, x0=None, sigma=10., rho=28., beta=8/3):
+def simulate_lorenz(t0, dt, n_timesteps, x0=None, sigma=10., rho=28., beta=8/3, tau=1.):
     if x0 is None:
         x0 = [-8, 7, 27]
 
-    f,jac = lorenz(sigma, rho, beta)
+    f,jac = lorenz(sigma, rho, beta, tau=tau)
     r = ode(f,jac).set_integrator('zvode', method='bdf')
     r.set_initial_value(x0, t0)
 
