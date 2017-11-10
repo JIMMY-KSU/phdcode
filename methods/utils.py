@@ -44,13 +44,13 @@ def integrate(X, t, dt_max=None):
             X_int[:,1:] = np.cumsum(X_diff*t_diff, axis=1)
         else:
             invalid_idx = np.where(t_diff > dt_max)[0]
-            X_int[:,1:invalid_idx[0]] = np.cumsum(X_diff[:,:invalid_idx[0]-1]*t_diff[:invalid_idx[0]-1], axis=1)
+            X_int[:,1:invalid_idx[0]+1] = np.cumsum(X_diff[:,:invalid_idx[0]]*t_diff[:invalid_idx[0]], axis=1)
             for i,idx in enumerate(invalid_idx):
                 if i == invalid_idx.size-1:
-                    X_int[:,invalid_idx[i]+1:] = np.cumsum(X_diff[:,invalid_idx[i]:]*t_diff[invalid_idx[i]:], axis=1)
+                    X_int[:,invalid_idx[i]+2:] = np.cumsum(X_diff[:,invalid_idx[i]:]*t_diff[invalid_idx[i]:], axis=1)
                 else:
-                    X_int[:,invalid_idx[i]+1:invalid_idx[i+1]] = np.cumsum(X_diff[:,invalid_idx[i]:invalid_idx[i+1]-1] \
-                                                                           *t_diff[invalid_idx[i]:invalid_idx[i+1]-1],
+                    X_int[:,invalid_idx[i]+2:invalid_idx[i+1]+1] = np.cumsum(X_diff[:,invalid_idx[i]:invalid_idx[i+1]] \
+                                                                           *t_diff[invalid_idx[i]:invalid_idx[i+1]],
                                                                            axis=1)
     return X_int
 
