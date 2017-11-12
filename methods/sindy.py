@@ -112,7 +112,7 @@ def sindy_setup(Xin, poly_order, use_sine, t, method='derivative', dt_max=None):
             RHS, labels = pool_data(Xin[1:-1], poly_order, use_sine)
         else:
             valid_idx = np.where(t[2:] - t[:-2] < 2*dt_max)[0]
-            RHS, labels = pool_data(Xin[valid_idx+1], poly_order, use_sine)
+            RHS, labels = pool_data(Xin[:,valid_idx+1], poly_order, use_sine)
         return RHS, LHS, labels
 
 
