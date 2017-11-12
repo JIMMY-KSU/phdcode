@@ -6,7 +6,7 @@ def multiscale_timesample(t_start, t_end, dt, sample_separation, sample_duration
     current_end = t[-1]
     while current_end+sample_separation < t_end:
         t = np.hstack((t, np.arange(current_end+sample_separation,
-                                         current_end+sample_separation+sample_duration+dt,
+                                         min(t_end, current_end+sample_separation+sample_duration+dt),
                                          dt)))
         current_end = t[-1]
     return t
