@@ -148,6 +148,7 @@ class SINDy:
         #     raise ValueError('invalid fitting method')
         RHS, LHS, labels = sindy_setup(Xin, poly_order, self.use_sine, t, method=self.differentiation_method,
                                        dt_max=dt_max)
+        self.labels = labels
 
         n,T = LHS.shape
         Xi = np.linalg.lstsq(RHS.T,LHS.T)[0]
