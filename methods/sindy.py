@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.integrate import ode
 from scipy.special import binom
-from .utils import integrate
+from .utils import differentiate, integrate
 from sklearn.linear_model import Lasso
 
 
@@ -88,12 +88,13 @@ class SINDy:
         self.differentiation_method = differentiation_method
         self.optimization_method = optimization_method
 
-    def fit(self, Xin, poly_order, dt=None, Xprime=None, coefficient_threshold=.01, alpha=1.0):
+    def fit(self, Xin, poly_order, t=None, Xprime=None, coefficient_threshold=.01, alpha=1.0, dt_max=None):
         if self.differentiation_method == 'derivative':
             if Xprime is None:
-                if dt is None:
+                if t is None:
                     raise ValueError('must provide at least one of derivative or time step')
-                Xprime = (Xin[:,2:]-Xin[:,:-2])/(2*dt)
+                # Xprime = (Xin[:,2:]-Xin[:,:-2])/(2*dt)
+                Xprime = differentiate(Xin, t, dt_max=dt_max)
                 X = Xin[:,1:-1]
             else:
                 X = Xin
@@ -102,13 +103,13 @@ class SINDy:
             RHS,labels = pool_data(X, poly_order, self.use_sine)
             self.labels = labels
         elif self.differentiation_method == 'integral':
-            if dt is None:
+            if t is None:
                 raise ValueError('must provide time step')
 
             LHS = Xin - np.broadcast_to(Xin[:,0], (Xin.shape[1],Xin.shape[0])).T
             Theta,labels = pool_data(Xin, poly_order, self.use_sine)
             self.labels = labels
-            RHS = integrate(Theta, dt)
+            RHS = integrate(Theta, t, dt_max=dt_max)
         else:
             raise ValueError('invalid fitting method')
 
@@ -133,17 +134,19 @@ class SINDy:
         self.Xi = Xi
         self.error = np.sum(np.mean((LHS - np.dot(Xi.T,RHS))**2,axis=1))
 
-    def fit_incremental(self, Xin, dt=None, Xprime=None, coefficient_threshold=.01, error_threshold=1e-3, alpha=1.0):
+    def fit_incremental(self, Xin, t=None, Xprime=None, coefficient_threshold=.01, error_threshold=1e-3, alpha=1.0,
+                        dt_max=None):
         if self.differentiation_method == 'derivative':
             if Xprime is None:
-                if dt is None:
+                if t is None:
                     raise ValueError('must provide at least one of derivative or time step')
-                Xprime = (Xin[:,2:]-Xin[:,:-2])/(2*dt)
+                # Xprime = (Xin[:,2:]-Xin[:,:-2])/(2*dt)
+                Xprime = differentiate(Xin, t, dt_max=dt_max)
                 X = Xin[:,1:-1]
             else:
                 X = Xin
         elif self.differentiation_method == 'integral':
-            if dt is None:
+            if t is None:
                 raise ValueError('must provide time step')
             X = Xin
         else:
@@ -157,7 +160,7 @@ class SINDy:
                 LHS = Xprime
             else:
                 Theta,labels = pool_data(X, order, self.use_sine)
-                RHS = integrate(Theta, dt)
+                RHS = integrate(Theta, t, dt_max=dt_max)
                 LHS = X - np.broadcast_to(X[:,0], (X.shape[1],X.shape[0])).T
 
             self.labels = labels
