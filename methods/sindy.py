@@ -94,7 +94,7 @@ def sindy_setup(Xin, poly_order, use_sine, t, method='derivative', dt_max=None):
                 LHS = Xin - np.broadcast_to(Xin[:,0], (Xin.shape[1],Xin.shape[0])).T
             else:
                 time_gaps += 1
-                LHS = Xin
+                LHS = Xin.copy()
                 LHS[:,:time_gaps[0]] -= np.broadcast_to(Xin[:,0], (time_gaps[0],Xin.shape[0])).T
                 for i in range(time_gaps.size):
                     if i == time_gaps.size-1:
@@ -108,11 +108,11 @@ def sindy_setup(Xin, poly_order, use_sine, t, method='derivative', dt_max=None):
     else:
         LHS = differentiate(Xin, t, dt_max=dt_max)
         if np.isscalar(t):
-            RHS, labels = pool_data(Xin[1:-1], poly_order, use_sine)
+            RHS, labels = pool_data(Xin[:,1:-1], poly_order, use_sine)
         else:
             time_gaps = np.where(t[1:] - t[:-1] > dt_max)[0]
             if time_gaps.size == 0:
-                RHS, labels = pool_data(Xin[1:-1], poly_order, use_sine)
+                RHS, labels = pool_data(Xin[:,1:-1], poly_order, use_sine)
             else:
                 valid_idx = np.where(t[2:] - t[:-2] < 2*dt_max)[0]
                 RHS, labels = pool_data(Xin[:,valid_idx+1], poly_order, use_sine)
