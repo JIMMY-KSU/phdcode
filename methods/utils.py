@@ -16,7 +16,7 @@ def hankel_matrix(Xin, delay):
 
 
 def differentiate(X, t, method='centered_difference', dt_max=None):
-    if t.size == 1:
+    if np.isscalar(t):
         # if t is a single number, assume uniform sampling with time step t
         return (X[:,2:]-X[:,:-2])/(2*t)
     else:
@@ -32,7 +32,7 @@ def differentiate(X, t, method='centered_difference', dt_max=None):
 
 def integrate(X, t, dt_max=None):
     X_int = np.zeros(X.shape)
-    if t.size == 1:
+    if np.isscalar(t):
         # uniform time step
         X_diff = t/2*(X[:,1:] + X[:,:-1])
         X_int[:,1:] = np.cumsum(X_diff, axis=1)
