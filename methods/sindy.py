@@ -146,7 +146,7 @@ class SINDy:
         #     RHS = integrate(Theta, t, dt_max=dt_max)
         # else:
         #     raise ValueError('invalid fitting method')
-        LHS, RHS, labels = sindy_setup(Xin, poly_order, self.use_sine, t, method=self.differentiation_method,
+        RHS, LHS, labels = sindy_setup(Xin, poly_order, self.use_sine, t, method=self.differentiation_method,
                                        dt_max=dt_max)
 
         n,T = LHS.shape
