@@ -26,7 +26,7 @@ def differentiate(X, t, method='centered_difference', dt_max=None):
         if dt_max is None:
             return X_diff*(1/t_diff)
         else:
-            valid_idx = np.where(t_diff < dt_max)[0]
+            valid_idx = np.where(t_diff < 2*dt_max)[0]
             return X_diff[:,valid_idx]*(1/t_diff[valid_idx])
 
 
