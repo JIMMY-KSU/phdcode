@@ -123,29 +123,31 @@ class SINDy:
         self.optimization_method = optimization_method
 
     def fit(self, Xin, poly_order, t=None, Xprime=None, coefficient_threshold=.01, alpha=1.0, dt_max=None):
-        if self.differentiation_method == 'derivative':
-            if Xprime is None:
-                if t is None:
-                    raise ValueError('must provide at least one of derivative or time step')
-                # Xprime = (Xin[:,2:]-Xin[:,:-2])/(2*dt)
-                Xprime = differentiate(Xin, t, dt_max=dt_max)
-                X = Xin[:,1:-1]
-            else:
-                X = Xin
-
-            LHS = Xprime
-            RHS,labels = pool_data(X, poly_order, self.use_sine)
-            self.labels = labels
-        elif self.differentiation_method == 'integral':
-            if t is None:
-                raise ValueError('must provide time step')
-
-            LHS = Xin - np.broadcast_to(Xin[:,0], (Xin.shape[1],Xin.shape[0])).T
-            Theta,labels = pool_data(Xin, poly_order, self.use_sine)
-            self.labels = labels
-            RHS = integrate(Theta, t, dt_max=dt_max)
-        else:
-            raise ValueError('invalid fitting method')
+        # if self.differentiation_method == 'derivative':
+        #     if Xprime is None:
+        #         if t is None:
+        #             raise ValueError('must provide at least one of derivative or time step')
+        #         # Xprime = (Xin[:,2:]-Xin[:,:-2])/(2*dt)
+        #         Xprime = differentiate(Xin, t, dt_max=dt_max)
+        #         X = Xin[:,1:-1]
+        #     else:
+        #         X = Xin
+        #
+        #     LHS = Xprime
+        #     RHS,labels = pool_data(X, poly_order, self.use_sine)
+        #     self.labels = labels
+        # elif self.differentiation_method == 'integral':
+        #     if t is None:
+        #         raise ValueError('must provide time step')
+        #
+        #     LHS = Xin - np.broadcast_to(Xin[:,0], (Xin.shape[1],Xin.shape[0])).T
+        #     Theta,labels = pool_data(Xin, poly_order, self.use_sine)
+        #     self.labels = labels
+        #     RHS = integrate(Theta, t, dt_max=dt_max)
+        # else:
+        #     raise ValueError('invalid fitting method')
+        LHS, RHS, labels = sindy_setup(Xin, poly_order, self.use_sine, t, method=self.differentiation_method,
+                                       dt_max=dt_max)
 
         n,T = LHS.shape
         Xi = np.linalg.lstsq(RHS.T,LHS.T)[0]
