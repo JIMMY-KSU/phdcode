@@ -43,3 +43,36 @@ def centered_colormap(data, start=0.0, midpoint=None, stop=1.0, cmap=None, name=
     plt.register_cmap(cmap=newcmap)
 
     return newcmap
+
+
+def viridis_white(stop):
+    cmap = plt.get_cmap('viridis')
+    cdict = {
+        'red': [],
+        'green': [],
+        'blue': [],
+        'alpha': []
+    }
+
+    # regular index to compute the colors
+    reg_index = np.linspace(0, stop, 257)
+
+    # shifted index to match the data
+    shift_index = np.linspace(0.0, 1.0, 257)
+
+    cdict['red'].append((shift_index[0], 1., 1.))
+    cdict['green'].append((shift_index[0], 1., 1.))
+    cdict['blue'].append((shift_index[0], 1., 1.))
+    cdict['alpha'].append((shift_index[0], 1., 1.))
+    for ri, si in zip(reg_index[1:], shift_index[1:]):
+        r, g, b, a = cmap(ri)
+
+        cdict['red'].append((si, r, r))
+        cdict['green'].append((si, g, g))
+        cdict['blue'].append((si, b, b))
+        cdict['alpha'].append((si, a, a))
+
+    newcmap = LinearSegmentedColormap('viridis_white', cdict)
+    plt.register_cmap(cmap=newcmap)
+
+    return newcmap
