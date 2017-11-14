@@ -306,7 +306,7 @@ def simulate_coupled_vdp(dt, n_timesteps, x0=None, mu1=1., mu2=1., c1=1., c2=1.,
     if x0 is None:
         x0 = [2.,0.,0.,2.]
 
-    f,jac = coupled_vdp(mu1,mu2,c1,c2, tau1=1, tau2=1)
+    f,jac = coupled_vdp(mu1,mu2,c1,c2, tau1=tau1, tau2=tau2)
     r = ode(f,jac).set_integrator('zvode', method='bdf')
     r.set_initial_value(x0, 0.)
 
