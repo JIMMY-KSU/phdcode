@@ -233,17 +233,17 @@ def simulate_duffing_map(n_steps, x0=None, a=2.75, b=0.2):
     return x
 
 
-def linear_oscillator(k):
-    f = lambda t,x: [x[1],-k*x[0]]
-    jac = lambda t,x: [[0.,1.], [-k,0.]]
+def linear_oscillator(k, tau=1):
+    f = lambda t,x: [x[1]/tau,-k*x[0]/tau]
+    jac = lambda t,x: [[0.,1./tau], [-k/tau,0.]]
     return f,jac
 
 
-def simulate_linear_oscillator(dt, n_timesteps, x0=None, k=1.):
+def simulate_linear_oscillator(dt, n_timesteps, x0=None, k=1., tau=1):
     if x0 is None:
         x0 = [1.,0.]
 
-    f,jac = linear_oscillator(k)
+    f,jac = linear_oscillator(k, tau=tau)
     r = ode(f,jac).set_integrator('zvode', method='bdf')
     r.set_initial_value(x0, 0.)
 
