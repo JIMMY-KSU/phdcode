@@ -159,8 +159,8 @@ class DMD:
         X[:,:n_samples-self.time_delay-2] = np.dot(self.P, Xtilde[:,:n_samples-self.time_delay-2])
         for i in range(n_steps + self.time_delay + 2):
             idx = n_samples - self.time_delay - 2 + i
-            Xtilde[:,n_samples-1+i] = np.dot(np.dot(self.Atilde, self.P.conj().T), X[:,idx-1])
-            X[:,idx] = np.dot(self.P, Xtilde[:,n_samples-1+i])
+            Xtilde[:,idx] = np.dot(np.dot(self.Atilde, self.P.conj().T), X[:,idx-1])
+            X[:,idx] = np.dot(self.P, Xtilde[:,idx])
         # if self.real:
         #     X = np.zeros((Xin.shape[0]*(self.time_delay+1), n_samples + n_steps))
         # else:
