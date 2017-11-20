@@ -60,7 +60,7 @@ def viridis_white():
     cdict['green'].append((index[0], 1., 1.))
     cdict['blue'].append((index[0], 1., 1.))
     cdict['alpha'].append((index[0], 1., 1.))
-    for i in zip(index[1:]):
+    for i in index[1:]:
         r, g, b, a = cmap(i)
 
         cdict['red'].append((i, r, r))
