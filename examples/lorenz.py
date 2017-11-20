@@ -10,17 +10,17 @@ def lorenz(sigma, rho, beta, tau=1.):
     return f,jac
 
 
-def simulate_lorenz(t0, dt, n_timesteps, x0=None, sigma=10., rho=28., beta=8/3, tau=1.):
+def simulate_lorenz(dt, n_timesteps, x0=None, sigma=10., rho=28., beta=8/3, tau=1.):
     if x0 is None:
         x0 = [-8, 7, 27]
 
     f,jac = lorenz(sigma, rho, beta, tau=tau)
     r = ode(f,jac).set_integrator('zvode', method='bdf')
-    r.set_initial_value(x0, t0)
+    r.set_initial_value(x0, 0.0)
 
     x = [x0]
-    t = [t0]
-    xprime = [f(t0,x0)]
+    t = [0.0]
+    xprime = [f(0.0,x0)]
     while r.successful() and len(x) < n_timesteps:
         r.integrate(r.t + dt)
         x.append(np.real(r.y))
@@ -42,17 +42,17 @@ def coupled_lorenz(sigma1, rho1, beta1, sigma2, rho2, beta2, c1, c2):
     return f,jac
 
 
-def simulate_coupled_lorenz(t0, dt, n_timesteps, x0=None, sigma1=10., rho1=28., beta1=8/3, sigma2=10., rho2=50., beta2=8/3, c1=1, c2=1):
+def simulate_coupled_lorenz(dt, n_timesteps, x0=None, sigma1=10., rho1=28., beta1=8/3, sigma2=10., rho2=50., beta2=8/3, c1=1, c2=1):
     if x0 is None:
         x0 = [-8, 7, 27, 10, -4, 70]
 
     f,jac = coupled_lorenz(sigma1, rho1, beta1, sigma2, rho2, beta2, c1, c2)
     r = ode(f,jac).set_integrator('zvode', method='bdf')
-    r.set_initial_value(x0, t0)
+    r.set_initial_value(x0, 0.0)
 
     x = [x0]
-    t = [t0]
-    xprime = [f(t0,x0)]
+    t = [0.0]
+    xprime = [f(0.0,x0)]
     while r.successful() and len(x) < n_timesteps:
         r.integrate(r.t + dt)
         x.append(np.real(r.y))
@@ -86,17 +86,17 @@ def lorenz96(N, F, tau=1):
     return f,jac
 
 
-def simulate_lorenz96(t0, dt, n_timesteps, N, x0=None, F=0, tau=1):
+def simulate_lorenz96(dt, n_timesteps, N, x0=None, F=0, tau=1):
     if x0 is None:
         x0 = np.ones(N)
 
     f,jac = lorenz96(N, F, tau=tau)
     r = ode(f,jac).set_integrator('zvode', method='bdf')
-    r.set_initial_value(x0, t0)
+    r.set_initial_value(x0, 0.0)
 
     x = [x0]
-    t = [t0]
-    xprime = [f(t0,x0)]
+    t = [0.0]
+    xprime = [f(0.0,x0)]
     while r.successful() and len(x) < n_timesteps:
         r.integrate(r.t + dt)
         x.append(np.real(r.y))
@@ -162,17 +162,17 @@ def coupled_lorenz96(N1, N2, F1, F2, C1, C2, tau1=1, tau2=1):
     return f,jac
 
 
-def simulate_coupled_lorenz96(t0, dt, n_timesteps, N1, N2, C1, C2, x0=None, F1=0, F2=0, tau1=1, tau2=1):
+def simulate_coupled_lorenz96(dt, n_timesteps, N1, N2, C1, C2, x0=None, F1=0, F2=0, tau1=1, tau2=1):
     if x0 is None:
         x0 = np.ones(N1+N2)
 
     f,jac = coupled_lorenz96(N1, N2, F1, F2, C1, C2, tau1=tau1, tau2=tau2)
     r = ode(f,jac).set_integrator('zvode', method='bdf')
-    r.set_initial_value(x0, t0)
+    r.set_initial_value(x0, 0.0)
 
     x = [x0]
-    t = [t0]
-    xprime = [f(t0,x0)]
+    t = [0.0]
+    xprime = [f(0.0,x0)]
     while r.successful() and len(x) < n_timesteps:
         r.integrate(r.t + dt)
         x.append(np.real(r.y))
