@@ -5,11 +5,19 @@ from ..utils.optimal_svht_coef import optimal_svht_coef
 
 
 class DMD:
-    def __init__(self, threshold=None, time_delay=0):
+    def __init__(self, method='exact', threshold=None, time_delay=0, time_delay_spacing=1):
+        self.method = method
         self.threshold = threshold
         self.time_delay = time_delay
+        self.time_delay_spacing = time_delay_spacing
 
-    def fit(self, Xin, dt, real=None):
+    def fit(self, *args, **kwargs):
+        if self.method == 'optimal':
+            self._fit_optimal(*args, **kwargs)
+        else:
+            self._fit_exact(*args, **kwargs)
+
+    def _fit_exact(self, Xin, dt, real=None):
         self.dt = dt
         if real is None:
             self.real = (np.where(np.iscomplex(Xin))[0].size < 1)
@@ -17,7 +25,7 @@ class DMD:
             self.real = real
 
         if self.time_delay > 0:
-            H = hankel_matrix(Xin, self.time_delay)
+            H = hankel_matrix(Xin, self.time_delay, spacing=self.time_delay_spacing)
             X = H[:,:-1]
             Xp = H[:,1:]
         else:
@@ -104,6 +112,9 @@ class DMD:
         self.Atilde_continuous = (self.Atilde - np.eye(self.Atilde.shape[0]))/dt
         self.P = U
 
+    def _fit_optimal(self, Xin, t, real=None):
+        raise NotImplementedError('optimal DMD fitting not yet implemented')
+
     def reduced_dynamics(self, t):
         if self.omega.ndim == 2:
             x = np.zeros((self.rank, t.size))
@@ -147,7 +158,7 @@ class DMD:
                 return Xtilde
             return X
 
-        H = hankel_matrix(Xin[:,:-1],self.time_delay)
+        H = hankel_matrix(Xin[:,:-1], self.time_delay, spacing=self.time_delay_spacing)
 
         if self.real:
             X = np.zeros((Xin.shape[0]*(self.time_delay+1), n_samples + n_steps))
