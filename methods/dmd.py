@@ -161,15 +161,15 @@ class DMD:
         H = hankel_matrix(Xin[:,:-1], self.time_delay, spacing=self.time_delay_spacing)
 
         if self.real:
-            X = np.zeros((Xin.shape[0]*(self.time_delay+1), n_samples + n_steps))
+            X = np.zeros((Xin.shape[0]*(self.time_delay_spacing*self.time_delay+1), n_samples + n_steps))
             Xtilde = np.zeros((self.rank, n_samples+n_steps))
         else:
-            X = np.zeros((Xin.shape[0]*(self.time_delay+1), n_samples + n_steps), dtype=np.complex)
+            X = np.zeros((Xin.shape[0]*(self.time_delay_spacing*self.time_delay+1), n_samples + n_steps), dtype=np.complex)
             Xtilde = np.zeros((self.rank, n_samples+n_steps), dtype=np.complex)
-        Xtilde[:,:n_samples-self.time_delay-2] = np.dot(np.dot(self.Atilde, self.P.conj().T), H)
-        X[:,:n_samples-self.time_delay-2] = np.dot(self.P, Xtilde[:,:n_samples-self.time_delay-2])
-        for i in range(n_steps + self.time_delay + 2):
-            idx = n_samples - self.time_delay - 2 + i
+        Xtilde[:,:n_samples-self.time_delay_spacing*self.time_delay-2] = np.dot(np.dot(self.Atilde, self.P.conj().T), H)
+        X[:,:n_samples-self.time_delay_spacing*self.time_delay-2] = np.dot(self.P, Xtilde[:,:n_samples-self.time_delay_spacing*self.time_delay-2])
+        for i in range(n_steps + self.time_delay_spacing*self.time_delay + 2):
+            idx = n_samples - self.time_delay_spacing*self.time_delay - 2 + i
             Xtilde[:,idx] = np.dot(np.dot(self.Atilde, self.P.conj().T), X[:,idx-1])
             X[:,idx] = np.dot(self.P, Xtilde[:,idx])
         # if self.real:
