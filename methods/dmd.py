@@ -5,9 +5,13 @@ from ..utils.optimal_svht_coef import optimal_svht_coef
 
 
 class DMD:
-    def __init__(self, method='exact', threshold=None, time_delay=0, time_delay_spacing=1):
+    def __init__(self, method='exact', truncation='optimal', threshold=None, time_delay=0, time_delay_spacing=1):
         self.method = method
-        self.threshold = threshold
+        self.truncation = truncation
+        if (self.truncation == 'soft') and (threshold is None):
+            self.threshold = 1e-10
+        else:
+            self.threshold = threshold
         self.time_delay = time_delay
         self.time_delay_spacing = time_delay_spacing
 
@@ -33,7 +37,7 @@ class DMD:
             Xp = Xin[:,1:]
 
         U,s,Vt = la.svd(X, full_matrices=False)
-        if self.threshold is None:
+        if self.truncation == 'optimal':
             beta = X.shape[0]/X.shape[1]
             if beta > 1:
                 beta = 1/beta
@@ -41,8 +45,13 @@ class DMD:
             r = np.sum(s > omega)
             if r < 1:
                 r = 1
-        else:
+        elif self.truncation == 'soft':
             r = np.where(s > self.threshold)[0].size
+        elif self.truncation == 'hard':
+            if self.threshold is None:
+                r = s.size
+            else:
+                r = self.threshold
         self.rank = r
         U = U[:,:r]
         s = s[:r]
