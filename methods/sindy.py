@@ -89,7 +89,7 @@ def sindy_setup(Xin, poly_order, use_sine, t, method='derivative', dt_max=None):
         if np.isscalar(t) or (dt_max is None):
             LHS = Xin - np.broadcast_to(Xin[:,0], (Xin.shape[1],Xin.shape[0])).T
         else:
-            time_gaps = np.where(t[1:] - t[:-1] > dt_max)[0]
+            time_gaps = np.where((t[1:] - t[:-1] > dt_max) | (t[1:] - t[:-1] < 0))[0]
             if time_gaps.size == 0:
                 LHS = Xin - np.broadcast_to(Xin[:,0], (Xin.shape[1],Xin.shape[0])).T
             else:
@@ -110,11 +110,11 @@ def sindy_setup(Xin, poly_order, use_sine, t, method='derivative', dt_max=None):
         if np.isscalar(t) or (dt_max is None):
             RHS, labels = pool_data(Xin[:,1:-1], poly_order, use_sine)
         else:
-            time_gaps = np.where(t[1:] - t[:-1] > dt_max)[0]
+            time_gaps = np.where((t[1:] - t[:-1] > dt_max) | (t[1:] - t[:-1] < 0))[0]
             if time_gaps.size == 0:
                 RHS, labels = pool_data(Xin[:,1:-1], poly_order, use_sine)
             else:
-                valid_idx = np.where(t[2:] - t[:-2] < 2*dt_max)[0]
+                valid_idx = np.where((t[2:] - t[:-2] < 2*dt_max) & (t[2:] - t[:-2] > 0))[0]
                 RHS, labels = pool_data(Xin[:,valid_idx+1], poly_order, use_sine)
         return RHS, LHS, labels
 
@@ -229,6 +229,28 @@ class SINDy:
 
         self.poly_order = order
         self.Xi = Xi
+
+    # def fit_adaptive_coefficient(self, Xin, poly_order, t=None, Xprime=None, max_coefficient_threshold=1,
+    #                              min_coefficient_threshold=1e-3, dt_max=None):
+    #     RHS, LHS, labels = sindy_setup(Xin, poly_order, self.use_sine, t, method=self.differentiation_method,
+    #                                    dt_max=dt_max)
+    #     self.labels = labels
+    #
+    #     n,T = LHS.shape
+    #     Xi = np.linalg.lstsq(RHS.T,LHS.T)[0]
+    #
+    #     for k in range(10):
+    #         small_inds = (np.abs(Xi) < coefficient_threshold)
+    #         Xi[small_inds] = 0
+    #         for i in range(n):
+    #             big_inds = ~small_inds[:,i]
+    #             if np.where(big_inds)[0].size == 0:
+    #                 continue
+    #             Xi[big_inds,i] = np.linalg.lstsq(RHS[big_inds].T, LHS[i])[0]
+    #
+    #     self.poly_order = poly_order
+    #     self.Xi = Xi
+    #     self.error = np.sum(np.mean((LHS - np.dot(Xi.T,RHS))**2,axis=1))
 
     def reconstruct(self, x0, t0, dt, n_timesteps):
         f = lambda t,x: np.dot(self.Xi.T, pool_data(np.real(x), poly_order=self.poly_order, use_sine=self.use_sine)[0])
