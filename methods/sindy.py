@@ -230,27 +230,37 @@ class SINDy:
         self.poly_order = order
         self.Xi = Xi
 
-    # def fit_adaptive_coefficient(self, Xin, poly_order, t=None, Xprime=None, max_coefficient_threshold=1,
-    #                              min_coefficient_threshold=1e-3, dt_max=None):
-    #     RHS, LHS, labels = sindy_setup(Xin, poly_order, self.use_sine, t, method=self.differentiation_method,
-    #                                    dt_max=dt_max)
-    #     self.labels = labels
-    #
-    #     n,T = LHS.shape
-    #     Xi = np.linalg.lstsq(RHS.T,LHS.T)[0]
-    #
-    #     for k in range(10):
-    #         small_inds = (np.abs(Xi) < coefficient_threshold)
-    #         Xi[small_inds] = 0
-    #         for i in range(n):
-    #             big_inds = ~small_inds[:,i]
-    #             if np.where(big_inds)[0].size == 0:
-    #                 continue
-    #             Xi[big_inds,i] = np.linalg.lstsq(RHS[big_inds].T, LHS[i])[0]
-    #
-    #     self.poly_order = poly_order
-    #     self.Xi = Xi
-    #     self.error = np.sum(np.mean((LHS - np.dot(Xi.T,RHS))**2,axis=1))
+    def fit_adaptive_coefficient(self, Xin, poly_order, t=None, Xprime=None, dt_max=None):
+        RHS, LHS, labels = sindy_setup(Xin, poly_order, self.use_sine, t, method=self.differentiation_method,
+                                       dt_max=dt_max)
+        self.labels = labels
+
+        n,T = LHS.shape
+        Xi = np.linalg.lstsq(RHS.T,LHS.T)[0]
+        coefficient_thresholds = np.max(np.abs(Xi), axis=0)/2
+
+        for i in range(n):
+            for coefficient_attempts in range(20):
+                Xi_tmp = np.copy(Xi[:,i])
+                for k in range(10):
+                    small_inds = (np.abs(Xi_tmp) < coefficient_thresholds[i])
+                    Xi_tmp[small_inds] = 0
+                    big_inds = ~small_inds
+                    if np.where(big_inds)[0].size == 0:
+                        break
+                    Xi_tmp[big_inds] = np.linalg.lstsq(RHS[big_inds].T, LHS[i])[0]
+
+                # did we find a nonzero solution at this threshold
+                if np.where(big_inds)[0].size > 0:
+                    Xi[:,i] = Xi_tmp
+                    break
+                else:
+                    coefficient_thresholds[i] /= 2
+
+        self.poly_order = poly_order
+        self.Xi = Xi
+        self.error = np.sum(np.mean((LHS - np.dot(Xi.T,RHS))**2,axis=1))
+        self.coefficient_thresholds = coefficient_thresholds
 
     def reconstruct(self, x0, t0, dt, n_timesteps):
         f = lambda t,x: np.dot(self.Xi.T, pool_data(np.real(x), poly_order=self.poly_order, use_sine=self.use_sine)[0])
