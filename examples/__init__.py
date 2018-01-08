@@ -14,6 +14,8 @@ from .lorenz import simulate_coupled_lorenz
 from .lorenz import simulate_lorenz96
 from .lorenz import simulate_coupled_lorenz96
 
+from .rossler import simulate_rossler
+
 from .utils import generate_circle_image
 from .utils import generate_gaussian_image
 from .utils import generate_square_image
