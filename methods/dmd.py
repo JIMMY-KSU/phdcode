@@ -71,7 +71,7 @@ def compute_real_dmd_modes(Phi, omega, b):
 
     omega = np.vstack((np.array(omega_realpart), np.array(omega_imagpart)))
     b = np.array(b_tmp)
-    return Phi, omega, b
+    return Phi_real, omega, b
 
 
 class DMD:
