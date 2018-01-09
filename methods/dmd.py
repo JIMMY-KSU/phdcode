@@ -242,20 +242,10 @@ class DMD:
             Xtilde = np.zeros((self.rank, n_samples+n_steps), dtype=np.complex)
         Xtilde[:,:n_samples-self.time_delay_spacing*(self.time_delay-1)-1] = np.dot(np.dot(self.Atilde, self.P.conj().T), H)
         X[:,:n_samples-self.time_delay_spacing*(self.time_delay-1)-1] = np.dot(self.P,Xtilde[:,:n_samples-self.time_delay_spacing*(self.time_delay-1)-1])
-        for i in range(n_steps + self.time_delay_spacing*(self.time_delay-1) + 2):
+        for i in range(n_steps + self.time_delay_spacing*(self.time_delay-1) + 1):
             idx = n_samples - self.time_delay_spacing*(self.time_delay-1) - 1 + i
             Xtilde[:,idx] = np.dot(np.dot(self.Atilde, self.P.conj().T), X[:,idx-1])
             X[:,idx] = np.dot(self.P, Xtilde[:,idx])
-        # if self.real:
-        #     X = np.zeros((Xin.shape[0]*(self.time_delay+1), n_samples + n_steps))
-        # else:
-        #     X = np.zeros((Xin.shape[0]*(self.time_delay+1), n_samples + n_steps), dtype=np.complex)
-        # Xtilde = np.dot(np.dot(self.Atilde, self.P.conj().T), H)
-        # X[:,:n_samples-self.time_delay-2] = np.dot(self.P, Xtilde)
-        # for i in range(n_steps + self.time_delay + 2):
-        #     idx = n_samples - self.time_delay - 2 + i
-        #     xtilde = np.dot(np.dot(self.Atilde, self.P.conj().T), X[:,idx-1])
-        #     X[:,idx] = np.dot(self.P, xtilde)
 
         if reduced:
             return Xtilde
