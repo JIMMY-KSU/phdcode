@@ -9,13 +9,13 @@ def unit_circle(spacing=.01):
 def hankel_matrix(Xin, n_delay_coordinates, spacing=1):
     n_inputs, n_samples = Xin.shape
 
-    # X = np.zeros((n_inputs * (n_delay_coordinates + 1), int(np.floor((n_samples - n_delay_coordinates - 1)/spacing))))
-    X = np.zeros((n_inputs * (n_delay_coordinates + 1), n_samples - spacing*n_delay_coordinates - 1))
-    for i in range(n_delay_coordinates+1):
-        # idxs = spacing*np.arange(i, i + int(np.floor((n_samples - n_delay_coordinates - 1)/spacing)))
-        # X[i + (n_delay_coordinates + 1) * np.arange(n_inputs)] = Xin[:, i:i + n_samples - n_delay_coordinates - 1]
-        idxs = np.arange(spacing*i, spacing*i + n_samples - spacing*n_delay_coordinates - 1)
-        X[i + (n_delay_coordinates + 1) * np.arange(n_inputs)] = Xin[:, idxs]
+    # X = np.zeros((n_inputs * (n_delay_coordinates), int(np.floor((n_samples - n_delay_coordinates)/spacing))))
+    X = np.zeros((n_inputs * (n_delay_coordinates), n_samples - spacing*(n_delay_coordinates-1)))
+    for i in range(n_delay_coordinates):
+        # idxs = spacing*np.arange(i, i + int(np.floor((n_samples - n_delay_coordinates)/spacing)))
+        # X[i + n_delay_coordinates * np.arange(n_inputs)] = Xin[:, i:i + n_samples - n_delay_coordinates]
+        idxs = np.arange(spacing*i, spacing*(i+1) + n_samples - spacing*n_delay_coordinates)
+        X[i + (n_delay_coordinates) * np.arange(n_inputs)] = Xin[:, idxs]
     return X
 
 

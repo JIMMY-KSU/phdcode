@@ -5,7 +5,7 @@ from ..utils.optimal_svht_coef import optimal_svht_coef
 
 
 class DMD:
-    def __init__(self, method='exact', truncation='optimal', threshold=None, time_delay=0, time_delay_spacing=1):
+    def __init__(self, method='exact', truncation='optimal', threshold=None, time_delay=1, time_delay_spacing=1):
         self.method = method
         self.truncation = truncation
         if (self.truncation == 'soft') and (threshold is None):
@@ -28,7 +28,7 @@ class DMD:
         else:
             self.real = real
 
-        if self.time_delay > 0:
+        if self.time_delay > 1:
             H = hankel_matrix(Xin, self.time_delay, spacing=self.time_delay_spacing)
             X = H[:,:-1]
             Xp = H[:,1:]
@@ -148,7 +148,7 @@ class DMD:
         n_steps = int(T/self.dt)+1
         n_samples = Xin.shape[1]
 
-        if self.time_delay == 0:
+        if self.time_delay == 1:
             if self.real:
                 X = np.zeros((Xin.shape[0],n_samples+n_steps))
                 Xtilde = np.zeros((self.rank, n_samples+n_steps))
@@ -170,15 +170,15 @@ class DMD:
         H = hankel_matrix(Xin[:,:-1], self.time_delay, spacing=self.time_delay_spacing)
 
         if self.real:
-            X = np.zeros((Xin.shape[0]*(self.time_delay+1), n_samples + n_steps))
+            X = np.zeros((Xin.shape[0]*self.time_delay, n_samples + n_steps))
             Xtilde = np.zeros((self.rank, n_samples+n_steps))
         else:
-            X = np.zeros((Xin.shape[0]*(self.time_delay+1), n_samples + n_steps), dtype=np.complex)
+            X = np.zeros((Xin.shape[0]*self.time_delay, n_samples + n_steps), dtype=np.complex)
             Xtilde = np.zeros((self.rank, n_samples+n_steps), dtype=np.complex)
-        Xtilde[:,:n_samples-self.time_delay_spacing*self.time_delay-2] = np.dot(np.dot(self.Atilde, self.P.conj().T), H)
-        X[:,:n_samples-self.time_delay_spacing*self.time_delay-2] = np.dot(self.P, Xtilde[:,:n_samples-self.time_delay_spacing*self.time_delay-2])
-        for i in range(n_steps + self.time_delay_spacing*self.time_delay + 2):
-            idx = n_samples - self.time_delay_spacing*self.time_delay - 2 + i
+        Xtilde[:,:n_samples-self.time_delay_spacing*(self.time_delay-1)-2] = np.dot(np.dot(self.Atilde, self.P.conj().T), H)
+        X[:,:n_samples-self.time_delay_spacing*(self.time_delay-1)-2] = np.dot(self.P,Xtilde[:,:n_samples-self.time_delay_spacing*(self.time_delay-1)-2])
+        for i in range(n_steps + self.time_delay_spacing*(self.time_delay-1) + 2):
+            idx = n_samples - self.time_delay_spacing*(self.time_delay-1) - 2 + i
             Xtilde[:,idx] = np.dot(np.dot(self.Atilde, self.P.conj().T), X[:,idx-1])
             X[:,idx] = np.dot(self.P, Xtilde[:,idx])
         # if self.real:
