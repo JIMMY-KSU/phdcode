@@ -27,6 +27,53 @@ def compute_dmd_rank(s, truncation_method, shape=None, threshold=None):
     return r
 
 
+def compute_real_dmd_modes(Phi, omega, b):
+    Phi_real = np.zeros(Phi.shape)
+    omega_realpart = []
+    omega_imagpart = []
+
+    omega_tmp = []
+    b_tmp = []
+
+    omega_idx = np.arange(omega.size)
+    omega_copy = omega.copy()
+    i = 0
+    while i < omega.size:
+        if np.iscomplex(omega_copy[0]):
+            Phi_real[:,i] = 2*np.real(Phi[:,omega_idx[0]])
+            omega_realpart.append(np.real(omega_copy[0]))
+            omega_realpart.append(np.real(omega_copy[0]))
+            b_tmp.append(b[omega_idx[0]])
+
+            Phi_real[:,i+1] = -2*np.imag(Phi[:,omega_idx[0]])
+            omega_imagpart.append(np.imag(omega_copy[0]))
+            omega_imagpart.append(-np.imag(omega_copy[0]))
+            b_tmp.append(b[omega_idx[0]].conj())
+
+            # find complex conjugate eval
+            conj_idx = np.argsort(np.abs(np.conj(omega_copy[0]) - omega_copy))[0]
+
+            # mask out this eigenvalue and its conjugate
+            mask = np.ones(omega_idx.size, dtype=bool)
+            mask[[0,conj_idx]] = False
+            omega_idx = omega_idx[mask]
+            omega_copy = omega_copy[mask]
+            i += 2
+        else:
+            omega_realpart.append(np.real(omega_copy[0]))
+            omega_imagpart.append(0.0)
+            omega_tmp.append(omega_copy[0])
+            b_tmp.append(np.real(b[omega_idx[0]]))
+            Phi_real[:,i] = np.real(Phi[:,omega_idx[0]])
+            omega_idx = omega_idx[1:]
+            omega_copy = omega_copy[1:]
+            i += 1
+
+    omega = np.vstack((np.array(omega_realpart), np.array(omega_imagpart)))
+    b = np.array(b_tmp)
+    return Phi, omega, b
+
+
 class DMD:
     def __init__(self, method='exact', truncation='optimal', threshold=None, time_delay=1, time_delay_spacing=1):
         self.method = method
@@ -94,50 +141,51 @@ class DMD:
             omega = np.log(evals)/dt
             b = la.lstsq(Phi, X[:,0])[0]
 
-            Phi_real = np.zeros(Phi.shape)
-            omega_realpart = []
-            omega_imagpart = []
-
-            omega_tmp = []
-            b_tmp = []
-
-            omega_idx = np.arange(omega.size)
-            omega_copy = omega.copy()
-            i = 0
-            while i < omega.size:
-                if np.iscomplex(omega_copy[0]):
-                    Phi_real[:,i] = 2*np.real(Phi[:,omega_idx[0]])
-                    omega_realpart.append(np.real(omega_copy[0]))
-                    omega_realpart.append(np.real(omega_copy[0]))
-                    b_tmp.append(b[omega_idx[0]])
-
-                    Phi_real[:,i+1] = -2*np.imag(Phi[:,omega_idx[0]])
-                    omega_imagpart.append(np.imag(omega_copy[0]))
-                    omega_imagpart.append(-np.imag(omega_copy[0]))
-                    b_tmp.append(b[omega_idx[0]].conj())
-
-                    # find complex conjugate eval
-                    conj_idx = np.argsort(np.abs(np.conj(omega_copy[0]) - omega_copy))[0]
-
-                    # mask out this eigenvalue and its conjugate
-                    mask = np.ones(omega_idx.size, dtype=bool)
-                    mask[[0,conj_idx]] = False
-                    omega_idx = omega_idx[mask]
-                    omega_copy = omega_copy[mask]
-                    i += 2
-                else:
-                    omega_realpart.append(np.real(omega_copy[0]))
-                    omega_imagpart.append(0.0)
-                    omega_tmp.append(omega_copy[0])
-                    b_tmp.append(np.real(b[omega_idx[0]]))
-                    Phi_real[:,i] = np.real(Phi[:,omega_idx[0]])
-                    omega_idx = omega_idx[1:]
-                    omega_copy = omega_copy[1:]
-                    i += 1
-
-            self.Phi = Phi_real
-            self.omega = np.vstack((np.array(omega_realpart), np.array(omega_imagpart)))
-            self.b = np.array(b_tmp)
+            self.Phi, self.omega, self.b = compute_real_dmd_modes(Phi, omega, b)
+            # Phi_real = np.zeros(Phi.shape)
+            # omega_realpart = []
+            # omega_imagpart = []
+            #
+            # omega_tmp = []
+            # b_tmp = []
+            #
+            # omega_idx = np.arange(omega.size)
+            # omega_copy = omega.copy()
+            # i = 0
+            # while i < omega.size:
+            #     if np.iscomplex(omega_copy[0]):
+            #         Phi_real[:,i] = 2*np.real(Phi[:,omega_idx[0]])
+            #         omega_realpart.append(np.real(omega_copy[0]))
+            #         omega_realpart.append(np.real(omega_copy[0]))
+            #         b_tmp.append(b[omega_idx[0]])
+            #
+            #         Phi_real[:,i+1] = -2*np.imag(Phi[:,omega_idx[0]])
+            #         omega_imagpart.append(np.imag(omega_copy[0]))
+            #         omega_imagpart.append(-np.imag(omega_copy[0]))
+            #         b_tmp.append(b[omega_idx[0]].conj())
+            #
+            #         # find complex conjugate eval
+            #         conj_idx = np.argsort(np.abs(np.conj(omega_copy[0]) - omega_copy))[0]
+            #
+            #         # mask out this eigenvalue and its conjugate
+            #         mask = np.ones(omega_idx.size, dtype=bool)
+            #         mask[[0,conj_idx]] = False
+            #         omega_idx = omega_idx[mask]
+            #         omega_copy = omega_copy[mask]
+            #         i += 2
+            #     else:
+            #         omega_realpart.append(np.real(omega_copy[0]))
+            #         omega_imagpart.append(0.0)
+            #         omega_tmp.append(omega_copy[0])
+            #         b_tmp.append(np.real(b[omega_idx[0]]))
+            #         Phi_real[:,i] = np.real(Phi[:,omega_idx[0]])
+            #         omega_idx = omega_idx[1:]
+            #         omega_copy = omega_copy[1:]
+            #         i += 1
+            #
+            # self.Phi = Phi_real
+            # self.omega = np.vstack((np.array(omega_realpart), np.array(omega_imagpart)))
+            # self.b = np.array(b_tmp)
 
         self.A = np.dot(tmp, U.conj().T)
         self.Atilde = A_tilde
