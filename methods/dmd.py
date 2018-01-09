@@ -132,15 +132,23 @@ class DMD:
         A_tilde = np.dot(U.conj().T, tmp)
         evals, evecs = la.eig(A_tilde)
 
-        if not self.real:
-            self.Phi = np.dot(tmp, evecs)
-            self.omega = np.log(evals)/dt
-            self.b = la.lstsq(self.Phi, X[:,0])[0]
-        else:
-            Phi = np.dot(tmp, evecs)
-            omega = np.log(evals)/dt
-            b = la.lstsq(Phi, X[:,0])[0]
+        Phi = np.dot(tmp, evecs)
+        omega = np.log(evals)/dt
+        b = la.lstsq(Phi, X[:,0])[0]
 
+        sort_order = np.argsort(np.abs(b))[::-1]
+        Phi = Phi[:,sort_order]
+        omega = omega[sort_order]
+        b = b[sort_order]
+
+        # only take the beginning rows of Phi in the case of time delay
+        Phi = Phi[:X.shape[0]]
+
+        if not self.real:
+            self.Phi = Phi
+            self.omega = omega
+            self.b = b
+        else:
             self.Phi, self.omega, self.b = compute_real_dmd_modes(Phi, omega, b)
             # Phi_real = np.zeros(Phi.shape)
             # omega_realpart = []
@@ -187,7 +195,7 @@ class DMD:
             # self.omega = np.vstack((np.array(omega_realpart), np.array(omega_imagpart)))
             # self.b = np.array(b_tmp)
 
-        self.A = np.dot(tmp, U.conj().T)
+        self.A = np.dot(tmp, U.conj().T)[:X.shape[0]]
         self.Atilde = A_tilde
         self.A_continuous = (self.A - np.eye(self.A.shape[0]))/dt
         self.Atilde_continuous = (self.Atilde - np.eye(self.Atilde.shape[0]))/dt
@@ -242,10 +250,10 @@ class DMD:
         H = hankel_matrix(Xin[:,:-1], self.time_delay, spacing=self.time_delay_spacing)
 
         if self.real:
-            X = np.zeros((Xin.shape[0]*self.time_delay, n_samples + n_steps))
+            X = np.zeros((Xin.shape[0], n_samples + n_steps))
             Xtilde = np.zeros((self.rank, n_samples+n_steps))
         else:
-            X = np.zeros((Xin.shape[0]*self.time_delay, n_samples + n_steps), dtype=np.complex)
+            X = np.zeros((Xin.shape[0], n_samples + n_steps), dtype=np.complex)
             Xtilde = np.zeros((self.rank, n_samples+n_steps), dtype=np.complex)
         Xtilde[:,:n_samples-self.time_delay_spacing*(self.time_delay-1)-1] = np.dot(np.dot(self.Atilde, self.P.conj().T), H)
         X[:,:n_samples-self.time_delay_spacing*(self.time_delay-1)-1] = np.dot(self.P,Xtilde[:,:n_samples-self.time_delay_spacing*(self.time_delay-1)-1])
