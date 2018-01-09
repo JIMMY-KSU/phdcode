@@ -184,7 +184,7 @@ class DMD:
         self.Atilde = A_tilde
         self.A_continuous = (self.A - np.eye(self.A.shape[0]))/dt
         self.Atilde_continuous = (self.Atilde - np.eye(self.Atilde.shape[0]))/dt
-        self.P = U[:X_fit.shape[0]]
+        self.P = U
 
     def _fit_optimal(self, Xin, t, real=None):
         raise NotImplementedError('optimal DMD fitting not yet implemented')
@@ -241,11 +241,11 @@ class DMD:
             X = np.zeros((X_init.shape[0], n_samples + n_steps), dtype=np.complex)
             Xtilde = np.zeros((self.rank, n_samples+n_steps), dtype=np.complex)
         Xtilde[:,:n_samples-self.time_delay_spacing*(self.time_delay-1)-1] = np.dot(np.dot(self.Atilde, self.P.conj().T), H)
-        X[:,:n_samples-self.time_delay_spacing*(self.time_delay-1)-1] = np.dot(self.P,Xtilde[:,:n_samples-self.time_delay_spacing*(self.time_delay-1)-1])
+        X[:,:n_samples-self.time_delay_spacing*(self.time_delay-1)-1] = np.dot(self.P[:X_init.shape[0]],Xtilde[:,:n_samples-self.time_delay_spacing*(self.time_delay-1)-1])
         for i in range(n_steps + self.time_delay_spacing*(self.time_delay-1) + 2):
             idx = n_samples - self.time_delay_spacing*(self.time_delay-1) - 1 + i
             Xtilde[:,idx] = np.dot(np.dot(self.Atilde, self.P.conj().T), X[:,idx-1])
-            X[:,idx] = np.dot(self.P, Xtilde[:,idx])
+            X[:,idx] = np.dot(self.P[:X_init.shape[0]], Xtilde[:,idx])
         # if self.real:
         #     X = np.zeros((Xin.shape[0]*(self.time_delay+1), n_samples + n_steps))
         # else:
