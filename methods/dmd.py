@@ -91,20 +91,20 @@ class DMD:
         else:
             self._fit_exact(*args, **kwargs)
 
-    def _fit_exact(self, Xin, dt, real=None):
+    def _fit_exact(self, X_fit, dt, real=None):
         self.dt = dt
         if real is None:
-            self.real = (np.where(np.iscomplex(Xin))[0].size < 1)
+            self.real = (np.where(np.iscomplex(X_fit))[0].size < 1)
         else:
             self.real = real
 
         if self.time_delay > 1:
-            H = hankel_matrix(Xin, self.time_delay, spacing=self.time_delay_spacing)
+            H = hankel_matrix(X_fit, self.time_delay, spacing=self.time_delay_spacing)
             X = H[:,:-1]
             Xp = H[:,1:]
         else:
-            X = Xin[:,:-1]
-            Xp = Xin[:,1:]
+            X = X_fit[:, :-1]
+            Xp = X_fit[:, 1:]
 
         U,s,Vt = la.svd(X, full_matrices=False)
         r = compute_dmd_rank(s, self.truncation, shape=X.shape, threshold=self.threshold)
@@ -127,7 +127,7 @@ class DMD:
         b = b[sort_order]
 
         # only take the beginning rows of Phi in the case of time delay
-        Phi = Phi[:X.shape[0]]
+        Phi = Phi[:X_fit.shape[0]]
 
         if not self.real:
             self.Phi = Phi
@@ -180,11 +180,11 @@ class DMD:
             # self.omega = np.vstack((np.array(omega_realpart), np.array(omega_imagpart)))
             # self.b = np.array(b_tmp)
 
-        self.A = np.dot(tmp, U.conj().T)[:X.shape[0]]
+        self.A = np.dot(tmp, U.conj().T)[:X_fit.shape[0]]
         self.Atilde = A_tilde
         self.A_continuous = (self.A - np.eye(self.A.shape[0]))/dt
         self.Atilde_continuous = (self.Atilde - np.eye(self.Atilde.shape[0]))/dt
-        self.P = U[:X.shape[0]]
+        self.P = U[:X_fit.shape[0]]
 
     def _fit_optimal(self, Xin, t, real=None):
         raise NotImplementedError('optimal DMD fitting not yet implemented')
@@ -209,18 +209,18 @@ class DMD:
     def reconstruct(self, t):
         return np.dot(self.Phi, self.reduced_dynamics(t))
 
-    def project(self, Xin, T, reduced=False):
+    def project(self, X_init, T, reduced=False):
         n_steps = int(T/self.dt)+1
-        n_samples = Xin.shape[1]
+        n_samples = X_init.shape[1]
 
         if self.time_delay == 1:
             if self.real:
-                X = np.zeros((Xin.shape[0],n_samples+n_steps))
+                X = np.zeros((X_init.shape[0], n_samples + n_steps))
                 Xtilde = np.zeros((self.rank, n_samples+n_steps))
             else:
-                X = np.zeros((Xin.shape[0],n_samples+n_steps), dtype=np.complex)
+                X = np.zeros((X_init.shape[0], n_samples + n_steps), dtype=np.complex)
                 Xtilde = np.zeros((self.rank, n_samples+n_steps), dtype=np.complex)
-            Xtilde[:,:n_samples-1] = np.dot(np.dot(self.Atilde, self.P.conj().T), Xin[:,:-1])
+            Xtilde[:,:n_samples-1] = np.dot(np.dot(self.Atilde, self.P.conj().T), X_init[:, :-1])
             # X[:,:n_samples-1] = np.dot(self.P, Xtilde)
             X[:,:n_samples-1] = np.dot(self.P, Xtilde[:,:n_samples-1])
             for i in range(n_steps+1):
@@ -232,13 +232,13 @@ class DMD:
                 return Xtilde
             return X
 
-        H = hankel_matrix(Xin[:,:-1], self.time_delay, spacing=self.time_delay_spacing)
+        H = hankel_matrix(X_init[:, :-1], self.time_delay, spacing=self.time_delay_spacing)
 
         if self.real:
-            X = np.zeros((Xin.shape[0], n_samples + n_steps))
+            X = np.zeros((X_init.shape[0], n_samples + n_steps))
             Xtilde = np.zeros((self.rank, n_samples+n_steps))
         else:
-            X = np.zeros((Xin.shape[0], n_samples + n_steps), dtype=np.complex)
+            X = np.zeros((X_init.shape[0], n_samples + n_steps), dtype=np.complex)
             Xtilde = np.zeros((self.rank, n_samples+n_steps), dtype=np.complex)
         Xtilde[:,:n_samples-self.time_delay_spacing*(self.time_delay-1)-1] = np.dot(np.dot(self.Atilde, self.P.conj().T), H)
         X[:,:n_samples-self.time_delay_spacing*(self.time_delay-1)-1] = np.dot(self.P,Xtilde[:,:n_samples-self.time_delay_spacing*(self.time_delay-1)-1])
