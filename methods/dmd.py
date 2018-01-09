@@ -108,21 +108,6 @@ class DMD:
 
         U,s,Vt = la.svd(X, full_matrices=False)
         r = compute_dmd_rank(s, self.truncation, shape=X.shape, threshold=self.threshold)
-        # if self.truncation == 'optimal':
-        #     beta = X.shape[0]/X.shape[1]
-        #     if beta > 1:
-        #         beta = 1/beta
-        #     omega = optimal_svht_coef(beta,False) * np.median(s)
-        #     r = np.sum(s > omega)
-        #     if r < 1:
-        #         r = 1
-        # elif self.truncation == 'soft':
-        #     r = np.where(s > self.threshold)[0].size
-        # elif self.truncation == 'hard':
-        #     if self.threshold is None:
-        #         r = s.size
-        #     else:
-        #         r = self.threshold
         self.rank = r
         U = U[:,:r]
         s = s[:r]
@@ -199,7 +184,7 @@ class DMD:
         self.Atilde = A_tilde
         self.A_continuous = (self.A - np.eye(self.A.shape[0]))/dt
         self.Atilde_continuous = (self.Atilde - np.eye(self.Atilde.shape[0]))/dt
-        self.P = U
+        self.P = U[:X.shape[0]]
 
     def _fit_optimal(self, Xin, t, real=None):
         raise NotImplementedError('optimal DMD fitting not yet implemented')
