@@ -4,6 +4,29 @@ from .utils import hankel_matrix
 from ..utils.optimal_svht_coef import optimal_svht_coef
 
 
+def compute_dmd_rank(s, truncation_method, shape=None, threshold=None):
+    if truncation_method == 'soft':
+        if threshold is None:
+            raise ValueError('threshold must be defined for soft threshold truncation method')
+        r = np.where(s > threshold)[0].size
+    elif truncation_method == 'hard':
+        if threshold is None:
+            r = s.size
+        else:
+            r = threshold
+    else:
+        if shape is None:
+            raise ValueError('shape of input matrix must be defined for computing optimal SVHT coefficient')
+        beta = shape[0]/shape[1]
+        if beta > 1:
+            beta = 1/beta
+        omega = optimal_svht_coef(beta,False) * np.median(s)
+        r = np.sum(s > omega)
+        if r < 1:
+            r = 1
+    return r
+
+
 class DMD:
     def __init__(self, method='exact', truncation='optimal', threshold=None, time_delay=1, time_delay_spacing=1):
         self.method = method
@@ -37,21 +60,22 @@ class DMD:
             Xp = Xin[:,1:]
 
         U,s,Vt = la.svd(X, full_matrices=False)
-        if self.truncation == 'optimal':
-            beta = X.shape[0]/X.shape[1]
-            if beta > 1:
-                beta = 1/beta
-            omega = optimal_svht_coef(beta,False) * np.median(s)
-            r = np.sum(s > omega)
-            if r < 1:
-                r = 1
-        elif self.truncation == 'soft':
-            r = np.where(s > self.threshold)[0].size
-        elif self.truncation == 'hard':
-            if self.threshold is None:
-                r = s.size
-            else:
-                r = self.threshold
+        r = compute_dmd_rank(s, self.truncation, shape=X.shape, threshold=self.threshold)
+        # if self.truncation == 'optimal':
+        #     beta = X.shape[0]/X.shape[1]
+        #     if beta > 1:
+        #         beta = 1/beta
+        #     omega = optimal_svht_coef(beta,False) * np.median(s)
+        #     r = np.sum(s > omega)
+        #     if r < 1:
+        #         r = 1
+        # elif self.truncation == 'soft':
+        #     r = np.where(s > self.threshold)[0].size
+        # elif self.truncation == 'hard':
+        #     if self.threshold is None:
+        #         r = s.size
+        #     else:
+        #         r = self.threshold
         self.rank = r
         U = U[:,:r]
         s = s[:r]
