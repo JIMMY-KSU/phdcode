@@ -15,7 +15,7 @@ def hankel_matrix(Xin, n_delay_coordinates, spacing=1):
         # idxs = spacing*np.arange(i, i + int(np.floor((n_samples - n_delay_coordinates)/spacing)))
         # X[i + n_delay_coordinates * np.arange(n_inputs)] = Xin[:, i:i + n_samples - n_delay_coordinates]
         idxs = np.arange(spacing*i, spacing*(i+1) + n_samples - spacing*n_delay_coordinates)
-        X[i + (n_delay_coordinates) * np.arange(n_inputs)] = Xin[:, idxs]
+        X[i*n_inputs:(i+1)*n_inputs] = Xin[:, idxs]
     return X
 
 
