@@ -189,7 +189,7 @@ class DMD:
             # self.omega = np.vstack((np.array(omega_realpart), np.array(omega_imagpart)))
             # self.b = np.array(b_tmp)
 
-        self.A = np.dot(tmp, U.conj().T)[:X_fit.shape[0]]
+        self.A = np.dot(tmp, U.conj().T)
         self.Atilde = A_tilde
         self.A_continuous = (self.A - np.eye(self.A.shape[0]))/dt
         self.Atilde_continuous = (self.Atilde - np.eye(self.Atilde.shape[0]))/dt
