@@ -121,8 +121,14 @@ class DMD:
         Phi = np.dot(tmp, evecs)
         Phi = Phi / np.sqrt(np.sum(Phi**2, axis=0)) / np.sqrt(r)
         omega = np.log(evals)/dt
-        
-        b = la.lstsq(Phi, X[:,0])[0]
+
+        # b = la.lstsq(Phi, X[:,0])[0]
+        # fit b values over the whole time series
+        L = np.tile(Phi, (X.shape[1], 1))
+        for i in range(X.shape[1]):
+            L[i*Phi.shape[0]:(i+1)*Phi.shape[0]] *= evals**i
+        U_L, s_L, Vt_L = la.svd(L, full_matrices=False)
+        b = np.dot(np.dot(Vt_L.conj().T/s_L, U_L.conj().T), X.flatten('A'))
 
         sort_order = np.argsort(np.abs(b))[::-1]
         Phi = Phi[:,sort_order]
