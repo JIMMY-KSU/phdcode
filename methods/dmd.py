@@ -218,8 +218,7 @@ class DMD:
     def reconstruct(self, t):
         return np.dot(self.Phi, self.reduced_dynamics(t))
 
-    def project(self, X_init, T, reduced=False):
-        n_steps = int(T/self.dt)+1
+    def project(self, X_init, n_steps, reduced=False):
         n_samples = X_init.shape[1]
 
         if self.time_delay == 1:
