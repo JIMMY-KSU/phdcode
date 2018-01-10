@@ -91,7 +91,7 @@ class DMD:
         else:
             self._fit_exact(*args, **kwargs)
 
-    def _fit_exact(self, X_fit, dt, real=None):
+    def _fit_exact(self, X_fit, dt, real=None, t0=0.0):
         self.dt = dt
         if real is None:
             self.real = (np.where(np.iscomplex(X_fit))[0].size < 1)
@@ -122,13 +122,13 @@ class DMD:
         Phi = Phi / np.sqrt(np.sum(Phi**2, axis=0)) / np.sqrt(r)
         omega = np.log(evals)/dt
 
-        # b = la.lstsq(Phi, X[:,0])[0]
+        b = la.lstsq(Phi*np.exp(omega*t0), X[:,0])[0]
         # fit b values over the whole time series
-        L = np.tile(evecs, (X.shape[1], 1))
-        for i in range(X.shape[1]):
-            L[i*evecs.shape[0]:(i+1)*evecs.shape[0]] *= evals**i
-        U_L, s_L, Vt_L = la.svd(L, full_matrices=False)
-        b = np.dot(np.dot(Vt_L.conj().T/s_L, U_L.conj().T), (V*s).conj().flatten())
+        # L = np.tile(evecs, (X.shape[1], 1))
+        # for i in range(X.shape[1]):
+        #     L[i*evecs.shape[0]:(i+1)*evecs.shape[0]] *= evals**i
+        # U_L, s_L, Vt_L = la.svd(L, full_matrices=False)
+        # b = np.dot(np.dot(Vt_L.conj().T/s_L, U_L.conj().T), (V*s).conj().flatten())
 
         sort_order = np.argsort(np.abs(b))[::-1]
         Phi = Phi[:,sort_order]
