@@ -124,8 +124,8 @@ class DMD:
 
         # b = la.lstsq(Phi, X[:,0])[0]
         # fit b values over the whole time series
-        L = np.tile(evecs, (r, 1))
-        for i in range(r):
+        L = np.tile(evecs, (X.shape[1], 1))
+        for i in range(X.shape[1]):
             L[i*evecs.shape[0]:(i+1)*evecs.shape[0]] *= evals**i
         U_L, s_L, Vt_L = la.svd(L, full_matrices=False)
         b = np.dot(np.dot(Vt_L.conj().T/s_L, U_L.conj().T), (V*s).conj().flatten())
