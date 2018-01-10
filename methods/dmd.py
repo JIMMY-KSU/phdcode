@@ -117,8 +117,11 @@ class DMD:
         A_tilde = np.dot(U.conj().T, tmp)
         evals, evecs = la.eig(A_tilde)
 
+        # get modes and normalize them
         Phi = np.dot(tmp, evecs)
+        Phi = Phi / np.sqrt(np.sum(Phi**2, axis=0)) / np.sqrt(r)
         omega = np.log(evals)/dt
+        
         b = la.lstsq(Phi, X[:,0])[0]
 
         sort_order = np.argsort(np.abs(b))[::-1]
