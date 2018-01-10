@@ -122,7 +122,7 @@ class DMD:
         Phi = Phi / np.sqrt(np.sum(Phi**2, axis=0)) / np.sqrt(r)
         omega = np.log(evals)/dt
 
-        b = la.lstsq(Phi*np.exp(omega*t0), X[:,0])[0]
+        b = la.lstsq(Phi, X[:,0])[0]
         # fit b values over the whole time series
         # L = np.tile(evecs, (X.shape[1], 1))
         # for i in range(X.shape[1]):
