@@ -207,7 +207,7 @@ class DMD:
                     growth_rate = 0
                 else:
                     growth_rate = self.omega[0,i]
-                    
+
                 if self.omega[1,i] != 0:
                     x[i] = np.exp(growth_rate*t)*(np.real(self.b[i])*np.cos(self.omega[1,i]*t)
                                                       - np.imag(self.b[i])*np.sin(self.omega[1,i]*t))
@@ -220,8 +220,8 @@ class DMD:
             return x
         return (np.exp(np.outer(self.omega,t)).conj().T*self.b).conj().T
 
-    def reconstruct(self, t):
-        return np.dot(self.Phi, self.reduced_dynamics(t))
+    def reconstruct(self, t, growth_rate_threshold=0):
+        return np.dot(self.Phi, self.reduced_dynamics(t, growth_rate_threshold=growth_rate_threshold))
 
     def project(self, X_init, n_steps, reduced=False):
         n_samples = X_init.shape[1]
