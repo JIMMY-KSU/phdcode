@@ -198,15 +198,20 @@ class DMD:
     def _fit_optimal(self, Xin, t, real=None):
         raise NotImplementedError('optimal DMD fitting not yet implemented')
 
-    def reduced_dynamics(self, t):
+    def reduced_dynamics(self, t, growth_rate_threshold=0):
         if self.omega.ndim == 2:
             x = np.zeros((self.rank, t.size))
             i = 0
             while i < self.omega.shape[1]:
+                if np.abs(self.omega[0,i]) < growth_rate_threshold:
+                    growth_rate = 0
+                else:
+                    growth_rate = self.omega[0,i]
+                    
                 if self.omega[1,i] != 0:
-                    x[i] = np.exp(self.omega[0,i]*t)*(np.real(self.b[i])*np.cos(self.omega[1,i]*t)
+                    x[i] = np.exp(growth_rate*t)*(np.real(self.b[i])*np.cos(self.omega[1,i]*t)
                                                       - np.imag(self.b[i])*np.sin(self.omega[1,i]*t))
-                    x[i+1] = np.exp(self.omega[0,i]*t)*(np.imag(self.b[i])*np.cos(self.omega[1,i]*t)
+                    x[i+1] = np.exp(growth_rate*t)*(np.imag(self.b[i])*np.cos(self.omega[1,i]*t)
                                                       + np.real(self.b[i])*np.sin(self.omega[1,i]*t))
                     i += 2
                 else:
