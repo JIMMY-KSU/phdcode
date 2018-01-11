@@ -117,6 +117,10 @@ class DMD:
         A_tilde = np.dot(U.conj().T, tmp)
         evals, evecs = la.eig(A_tilde)
 
+        # check for a negative real eigenvalue, which is sometimes an issue with time delay DMD
+        if np.any(evals[~np.iscomplex(evals)] <= 0):
+            raise ValueError('found negative eigenvalue')
+
         # get modes and normalize them
         Phi = np.dot(tmp, evecs)
         Phi = Phi / np.sqrt(np.sum(Phi**2, axis=0)) / np.sqrt(r)
