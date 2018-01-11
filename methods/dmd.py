@@ -219,7 +219,7 @@ class DMD:
                                                       + np.real(self.b[i])*np.sin(self.omega[1,i]*t))
                     i += 2
                 else:
-                    x[i] = np.exp(self.omega[0,i]*t)*np.real(self.b[i])
+                    x[i] = np.exp(growth_rate*t)*np.real(self.b[i])
                     i += 1
             return x
         return (np.exp(np.outer(self.omega,t)).conj().T*self.b).conj().T
