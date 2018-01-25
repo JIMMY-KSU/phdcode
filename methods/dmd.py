@@ -101,7 +101,7 @@ class DMD:
         if self.time_delay > 1:
             H = hankel_matrix(X_fit, self.time_delay, spacing=self.time_delay_spacing)
             if random_sample:
-                sample_selection = np.random.permutation(H.shape[1]-1)[:H.shape[1]//sample_spacing]
+                sample_selection = np.sort(np.random.permutation(H.shape[1]-1)[:H.shape[1]//sample_spacing])
                 X = H[:,sample_selection]
                 Xp = H[:,sample_selection+1]
             else:
@@ -109,7 +109,7 @@ class DMD:
                 Xp = H[:,1::sample_spacing]
         else:
             if random_sample:
-                sample_selection = np.random.permutation(X_fit.shape[1]-1)[:X_fit.shape[1]//sample_spacing]
+                sample_selection = np.sort(np.random.permutation(X_fit.shape[1]-1)[:X_fit.shape[1]//sample_spacing])
                 X = X_fit[:,sample_selection]
                 Xp = X_fit[:,sample_selection+1]
             else:
