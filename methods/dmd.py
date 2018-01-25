@@ -75,8 +75,7 @@ def compute_real_dmd_modes(Phi, omega, b):
 
 
 class DMD:
-    def __init__(self, method='exact', truncation='optimal', threshold=None, time_delay=1, time_delay_spacing=1,
-                 sample_spacing=1):
+    def __init__(self, method='exact', truncation='optimal', threshold=None, time_delay=1, time_delay_spacing=1):
         self.method = method
         self.truncation = truncation
         if (self.truncation == 'soft') and (threshold is None):
@@ -85,7 +84,6 @@ class DMD:
             self.threshold = threshold
         self.time_delay = time_delay
         self.time_delay_spacing = time_delay_spacing
-        self.sample_spacing = sample_spacing
 
     def fit(self, *args, **kwargs):
         if self.method == 'optimal':
@@ -93,7 +91,7 @@ class DMD:
         else:
             self._fit_exact(*args, **kwargs)
 
-    def _fit_exact(self, X_fit, dt, real=None, t0=0.0):
+    def _fit_exact(self, X_fit, dt, real=None, t0=0.0, sample_spacing=1, random_sample=False):
         self.dt = dt
         if real is None:
             self.real = (np.where(np.iscomplex(X_fit))[0].size < 1)
@@ -102,11 +100,21 @@ class DMD:
 
         if self.time_delay > 1:
             H = hankel_matrix(X_fit, self.time_delay, spacing=self.time_delay_spacing)
-            X = H[:,:-1:self.sample_spacing]
-            Xp = H[:,1::self.sample_spacing]
+            if random_sample:
+                sample_selection = np.random.permutation(H.shape[1]-1)[:H.shape[1]//sample_spacing]
+                X = H[:,sample_selection]
+                Xp = H[:,sample_selection+1]
+            else:
+                X = H[:,:-1:sample_spacing]
+                Xp = H[:,1::sample_spacing]
         else:
-            X = X_fit[:, :-1:self.sample_spacing]
-            Xp = X_fit[:, 1::self.sample_spacing]
+            if random_sample:
+                sample_selection = np.random.permutation(X_fit.shape[1]-1)[:X_fit.shape[1]//sample_spacing]
+                X = X_fit[:,sample_selection]
+                Xp = X_fit[:,sample_selection+1]
+            else:
+                X = X_fit[:, :-1:sample_spacing]
+                Xp = X_fit[:, 1::sample_spacing]
 
         U,s,Vt = la.svd(X, full_matrices=False)
         r = compute_dmd_rank(s, self.truncation, shape=X.shape, threshold=self.threshold)
