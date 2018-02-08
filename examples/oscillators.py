@@ -29,23 +29,25 @@ def simulate_vanderpol_oscillator(dt, n_timesteps, x0=None, mu=10., tau=1):
     return np.array(x).T, np.array(t), np.array(xprime).T
 
 
-def duffing_oscillator(alpha, beta, gamma, delta, omega):
-    f = lambda t,x : [x[1], -delta*x[1] - alpha*x[0] - beta*x[0]**3 + gamma*np.cos(x[2]), omega]
-    jac = lambda t,x : [[0., 1., 0.], [-alpha - 3*beta*x[0]**2, -delta, -gamma*np.sin(x[2])], [0., 0., 0.]]
+def duffing_oscillator(alpha, beta, gamma, delta, omega, tau):
+    f = lambda t,x : [x[1]/tau, (-delta*x[1] - alpha*x[0] - beta*x[0]**3 + gamma*np.cos(x[2]))/tau, omega]
+    jac = lambda t,x : [[0., 1./tau, 0.], [(-alpha - 3*beta*x[0]**2)/tau, -delta/tau, -gamma*np.sin(x[2])/tau], [0., 0., 0.]]
     return f,jac
 
 
-def simulate_duffing_oscillator(dt, n_timesteps, x0=None, alpha=1., beta=1, gamma=0., delta=0., omega=1.):
+def simulate_duffing_oscillator(dt, n_timesteps, x0=None, alpha=1., beta=1, gamma=0., delta=0., omega=1., tau=1):
     if x0 is None:
-        x0 = [1.,0.]
+        x0 = [1.,0.,0.]
+    elif len(x0)==2:
+        x0 += 0.
 
-    f,jac = duffing_oscillator(alpha,beta,gamma,delta,omega)
+    f,jac = duffing_oscillator(alpha,beta,gamma,delta,omega,tau)
     r = ode(f,jac).set_integrator('zvode', method='bdf')
-    r.set_initial_value(x0, 0.)
+    r.set_initial_value(x0, x0[2])
 
     x = [x0]
-    t = [0.]
-    xprime = [f(0.,x0)]
+    t = [x0[2]]
+    xprime = [f(x0[2],x0)]
     while r.successful() and len(x) < n_timesteps:
         r.integrate(r.t + dt)
         x.append(np.real(r.y))
