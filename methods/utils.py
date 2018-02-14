@@ -49,7 +49,7 @@ def integrate(X, t, dt_max=None):
         else:
             invalid_idx = np.where(t_diff > dt_max)[0]
             if invalid_idx.size == 0:
-                X_int[:,1:] = np.cumsum(X_diff*tattem_diff, axis=1)
+                X_int[:,1:] = np.cumsum(X_diff*t_diff, axis=1)
             else:
                 X_int[:,1:invalid_idx[0]+1] = np.cumsum(X_diff[:,:invalid_idx[0]]*t_diff[:invalid_idx[0]], axis=1)
                 for i,idx in enumerate(invalid_idx):
