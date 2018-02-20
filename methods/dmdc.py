@@ -27,7 +27,7 @@ class DMDc:
         if B is None:
             if self.time_delay > 1:
                 H = hankel_matrix(X_fit, self.time_delay, spacing=self.time_delay_spacing)
-                Ups_subsample_1 = Upsilon_fit[:,::self.time_delay_spacing]
+                Ups_subsample_1 = Upsilon_fit[:,::self.time_delay_spacing][:,:H.shape[1]]
                 X = H[:,:-1:sample_spacing]
                 Omega = np.concatenate((X, Ups_subsample_1[:,:-1:sample_spacing]), axis=0)
                 Xp = H[:,1::sample_spacing]
@@ -94,7 +94,7 @@ class DMDc:
         else:
             if self.time_delay > 1:
                 H = hankel_matrix(X_fit, self.time_delay, spacing=self.time_delay_spacing)
-                Upsilon_subsample_1 = Upsilon_fit[:,::self.time_delay_spacing]
+                Upsilon_subsample_1 = Upsilon_fit[:,::self.time_delay_spacing][:,:H.shape[1]]
                 X = H[:,:-1:sample_spacing]
                 Xp = H[:,1::sample_spacing] - np.dot(B, Upsilon_subsample_1[:,:-1:sample_spacing])
             else:
