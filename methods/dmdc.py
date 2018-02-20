@@ -145,7 +145,7 @@ class DMDc:
             self.Btilde = np.dot(U.conj().T, B)
             self.P = U
 
-    def reconstruct(self, x0, U, t0):
+    def reconstruct(self, x0, U):
         # n_timesteps = int((T-t0)/self.dt)+1
         n_timesteps = U.shape[1]
 
