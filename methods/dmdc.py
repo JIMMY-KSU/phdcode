@@ -149,7 +149,7 @@ class DMDc:
         # n_timesteps = int((T-t0)/self.dt)+1
         n_timesteps = U.shape[1]
 
-        X = np.zeros((x0.size,n_timesteps))
+        X = np.zeros((x0.size,n_timesteps+1))
         X[:,0] = x0
         for i in range(n_timesteps):
             xtilde = np.dot(np.dot(self.Atilde, self.P.T), X[:,i]) + np.dot(self.Btilde, U[:,i])
