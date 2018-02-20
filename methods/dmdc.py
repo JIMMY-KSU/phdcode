@@ -145,12 +145,13 @@ class DMDc:
             self.Btilde = np.dot(U.conj().T, B)
             self.P = U
 
-    def reconstruct(self, x0, U, t0, T):
-        n_timesteps = int((T-t0)/self.dt)+1
+    def reconstruct(self, x0, U, t0):
+        # n_timesteps = int((T-t0)/self.dt)+1
+        n_timesteps = U.shape[1]
 
         X = np.zeros((x0.size,n_timesteps))
         X[:,0] = x0
-        for i,t in enumerate(np.arange(t0,T,self.dt)):
+        for i in range(n_timesteps):
             xtilde = np.dot(np.dot(self.Atilde, self.P.T), X[:,i]) + np.dot(self.Btilde, U[:,i])
             X[:,i+1] = np.dot(self.P, xtilde)
 
